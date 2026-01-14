@@ -122,7 +122,7 @@
             <div class="glass-panel p-6 rounded-xl space-y-4">
                 <h3 class="text-bona-gold text-xs font-bold uppercase tracking-widest border-b border-gray-800 pb-2">Data Retrieval</h3>
                 <div class="relative">
-                    <input type="text" id="search-id" class="w-full bg-bona-black border border-gray-700 text-white rounded-lg p-4 pr-12 focus:outline-none focus:border-bona-gold transition-colors font-mono text-lg" placeholder="e.g. D-24-01-001">
+                    <input type="text" id="search-id" class="w-full bg-bona-black border border-gray-700 text-white rounded-lg p-4 pr-12 focus:outline-none focus:border-bona-gold transition-colors font-mono text-lg" placeholder="e.g. D-24-01-001" oninput="this.value = this.value.toUpperCase()">
                     <button onclick="handleManualSearch()" class="absolute right-2 top-2 bottom-2 w-12 h-12 bg-bona-card rounded-md text-bona-gold flex items-center justify-center hover:bg-gray-700">
                         <i class="fa-solid fa-search text-xl"></i>
                     </button>
@@ -180,7 +180,7 @@
                 </div>
             </div>
 
-            <!-- Lineage & Container (Same as before) -->
+            <!-- Lineage & Container -->
             <div class="glass-panel p-4 rounded-xl">
                 <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">Lineage</h3>
                 <div class="grid grid-cols-2 gap-4">
@@ -217,7 +217,7 @@
                 </div>
             </div>
 
-            <!-- History Section (NEW) -->
+            <!-- History Section -->
             <div id="history-section" class="hidden">
                 <h3 class="text-bona-muted text-xs font-bold uppercase tracking-widest mb-3 mt-6 pl-1">History Records</h3>
                 <div class="space-y-3" id="history-list">
@@ -233,8 +233,7 @@
         </div>
     </div>
 
-    <!-- UPDATE & NEW ENTRY MODALS (UNCHANGED, simplified for brevity in this response but kept in file) -->
-    <!-- UPDATE MODAL -->
+    <!-- MODALS (Update & New Entry) -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2">
@@ -300,7 +299,6 @@
             </button>
             <h3 class="text-xl font-bold text-white mb-6 tracking-wide border-b border-gray-800 pb-4">新蟲 <span class="text-bona-gold">錄入</span></h3>
             <form id="form-new-entry" onsubmit="handleNewEntrySubmit(event)" class="space-y-6">
-                <!-- ID -->
                 <div class="bg-gray-900 p-4 rounded-lg border border-gray-700 space-y-3">
                     <label class="block text-xs text-bona-gold uppercase font-bold">Beetle ID (自動生成)</label>
                     <div class="flex space-x-2">
@@ -315,7 +313,6 @@
                     </div>
                     <div class="text-center font-mono text-xl font-bold text-white tracking-widest bg-black py-3 rounded border border-bona-gold/30" id="id-preview">D-24-01-001</div>
                 </div>
-                <!-- Dates -->
                 <div class="grid grid-cols-2 gap-5">
                     <div>
                         <label class="block text-xs text-gray-400 uppercase mb-2 font-bold">羽化/孵化日</label>
@@ -326,7 +323,6 @@
                         <input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12">
                     </div>
                 </div>
-                <!-- Lineage -->
                 <div class="space-y-4">
                      <div>
                          <label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代 (Generation)</label>
@@ -343,12 +339,10 @@
                         </div>
                     </div>
                 </div>
-                <!-- Weight -->
                 <div>
                     <label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label>
                     <input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required>
                 </div>
-                <!-- Container & Substrates (Full Options) -->
                 <div class="space-y-4 pt-2 border-t border-gray-800">
                     <div class="grid grid-cols-2 gap-5">
                          <div>
@@ -470,7 +464,6 @@
         let html5QrcodeScanner = null;
         let currentDetailData = null;
 
-        // ... [Initial Setup & View Switchers same as before] ...
         document.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 switchView('dashboard');
@@ -523,12 +516,12 @@
             location.reload();
         }
         async function handleManualSearch() {
-            const id = document.getElementById('search-id').value.trim();
+            // Force Uppercase
+            const id = document.getElementById('search-id').value.trim().toUpperCase();
             if (!id) return showNotification('請輸入編號', 'error');
             await fetchBeetleData(id);
         }
 
-        // --- CORE UPDATE FOR HISTORY ---
         async function fetchBeetleData(id) {
             showLoading(true);
             try {
@@ -547,17 +540,15 @@
                 }
 
                 if (response.ok && data) {
-                    // Check if Array (History Mode) or Object (Single Mode)
                     if (Array.isArray(data) && data.length > 0) {
-                        currentDetailData = data[0]; // Latest is first
+                        currentDetailData = data[0]; 
                         populateDetailView(data[0]);
                         renderHistoryList(data);
                         switchView('detail');
                     } else if (data.id) {
-                        // Legacy mode (Single Object)
                         currentDetailData = data;
                         populateDetailView(data);
-                        document.getElementById('history-section').classList.add('hidden'); // Hide history
+                        document.getElementById('history-section').classList.add('hidden'); 
                         switchView('detail');
                     } else {
                         showNotification('找不到此編號', 'error');
@@ -568,7 +559,7 @@
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                showNotification('連線失敗', 'error');
+                showNotification('找不到此編號或連線失敗', 'error');
             } finally {
                 showLoading(false);
             }
@@ -595,18 +586,11 @@
             const container = document.getElementById('history-list');
             const section = document.getElementById('history-section');
             container.innerHTML = '';
-            
-            // If only 1 record, hide history section (duplicate of main card)
             if (dataArray.length <= 1) {
                 section.classList.add('hidden');
                 return;
             }
-
             section.classList.remove('hidden');
-
-            // Start from index 0 or 1? 
-            // Usually showing index 0 again in list is redundant, but helps see flow. 
-            // Let's show all for clarity.
             dataArray.forEach(item => {
                 const el = document.createElement('div');
                 el.className = 'glass-panel p-4 rounded-xl flex justify-between items-center';
@@ -625,7 +609,6 @@
             });
         }
 
-        // [Modals & Scanner Logic same as before]
         async function handleUpdateSubmit(e) {
             e.preventDefault();
             closeUpdateModal();
@@ -685,7 +668,11 @@
                 });
                 if (response.ok) {
                     showNotification(`錄入成功: ${fullId}`, 'success');
-                    setTimeout(async () => { await fetchBeetleData(fullId); setTimeout(() => openQRModal(fullId), 500); }, 1000);
+                    // Increased delay to 3000ms for Notion latency
+                    setTimeout(async () => { 
+                        await fetchBeetleData(fullId); 
+                        setTimeout(() => openQRModal(fullId), 500); 
+                    }, 3000);
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { console.error(error); showNotification('錄入完成', 'success'); } finally { showLoading(false); }
         }
