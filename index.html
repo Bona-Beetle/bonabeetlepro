@@ -96,11 +96,8 @@
                 const first = history[0];
                 const w1 = parseFloat(previous.weight) || 0;
                 const w2 = parseFloat(latest.weight) || 0;
-                const d1 = new Date(previous.date);
-                const d2 = new Date(latest.date);
-                const d0 = new Date(first.date);
-                const dateDiff = Math.max((d2 - d1) / (1000 * 60 * 60 * 24), 1);
-                const totalDays = Math.max((d2 - d0) / (1000 * 60 * 60 * 24), 1);
+                const dateDiff = Math.max((new Date(latest.date) - new Date(previous.date)) / (1000 * 60 * 60 * 24), 1);
+                const totalDays = Math.max((new Date(latest.date) - new Date(first.date)) / (1000 * 60 * 60 * 24), 1);
                 return { 
                     intervalGain: ((w2 - w1) / dateDiff).toFixed(2), 
                     totalAvgGain: (w2 / totalDays).toFixed(2), 
@@ -186,6 +183,9 @@
                     
                     if (!res.ok) throw new Error("Connection Error");
                     const responseBody = await res.json();
+                    
+                    // --- DEBUG: 強制彈出原始數據檢查 ---
+                    // alert("DEBUG: " + JSON.stringify(responseBody)); 
                     
                     // 強制解析
                     let history = parseNotionData(responseBody.raw || responseBody);
@@ -319,7 +319,7 @@
                         <div className="relative z-10 flex justify-between items-end mb-6"><div><p className="text-[9px] text-zinc-500 font-black uppercase italic mb-1 leading-none">Mass Index</p><div className="text-6xl font-black text-white italic font-mono leading-none">{data.currentWeight}<span className="text-xs ml-1 text-[#CA8A04]">G</span></div></div><div className="text-right"><div className="flex items-center justify-end gap-1 text-green-500 mb-1"><Icon name="trending-up" size={12} /><span className="text-[9px] font-black uppercase italic tracking-tighter">Daily Gain</span></div><div className="text-2xl font-black text-white font-mono italic leading-none">+{data.metrics.intervalGain}<span className="text-[10px] ml-1 uppercase text-zinc-600">g/d</span></div></div></div>
                         <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6 text-[10px] font-black uppercase italic text-zinc-500"><div>總平均: <span className="text-zinc-200 font-mono">+{data.metrics.totalAvgGain}</span></div><div className="text-right">天數: <span className="text-zinc-200 font-mono">{data.metrics.daysSinceLast}</span></div></div>
                     </div>
-                    {/* 血統 (從檢索結果中讀取，不可修改) */}
+                    {/* 血統 (唯讀) */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♂</label><p className="text-xs font-black text-white italic font-mono">{data.parentMaleSize}</p></div>
                         <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♀</label><p className="text-xs font-black text-white italic font-mono">{data.parentFemaleSize}</p></div>
@@ -329,7 +329,7 @@
                         <div className="bg-zinc-800/30 px-6 py-4 border-b border-white/5 flex items-center gap-2"><Icon name="history" size={16} color="#CA8A04" /><span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">Timeline</span></div>
                         <div className="p-4 space-y-4">{data.growthHistory.slice().reverse().map((h, i) => (<div key={i} className="flex justify-between items-center text-[10px] font-mono border-b border-white/5 pb-2 last:border-0"><span className="text-zinc-500">{h.date}</span><span className="text-zinc-200 font-bold">{h.weight}g</span><span className="text-[#CA8A04]/50">{h.sub}</span></div>))}</div>
                     </div>
-                    {/* 掃描後的更新表單 */}
+                    {/* 掃描後的更新表單 - 包含日期選擇 */}
                     <div className="bg-[#18181B] p-8 rounded-[3.5rem] border border-[#CA8A04]/20 space-y-8 shadow-2xl">
                         <div className="text-center">
                             <p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono">Log Today's Weight</p>
@@ -391,6 +391,7 @@
                         {activeTab === 'home' && (
                             <div className="space-y-6 animate-slide-up">
                                 <header className="flex justify-between items-center"><div className="space-y-1"><p className="text-[10px] text-green-500 font-black uppercase italic tracking-widest leading-none">● Client: {userId}</p><h2 className="text-2xl font-black text-white italic tracking-tighter uppercase font-mono leading-none">Bona_Terminal</h2></div><button onClick={() => { localStorage.removeItem('bona_pro_license'); window.location.reload(); }} className="text-zinc-800 active:scale-90 transition-all"><Icon name="log-out" size={18} /></button></header>
+                                
                                 <div className="bg-zinc-900/50 rounded-2xl p-4 border border-white/5 flex items-center justify-between"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-[#CA8A04]"><Icon name="database" size={18} /></div><div><p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Storage Used</p><p className="text-xs font-black text-white font-mono">{usageStats.current} / {usageStats.limit} <span className="text-[8px] text-zinc-600 ml-1">ENTRIES</span></p></div></div><div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden"><div className="h-full bg-[#CA8A04]" style={{ width: `${(usageStats.current/usageStats.limit)*100}%` }}></div></div></div>
                                 <div className="bg-gradient-to-br from-[#CA8A04] to-yellow-800 p-8 rounded-[3.5rem] text-black shadow-2xl relative overflow-hidden active:scale-95 transition-transform" onClick={() => setIsScanning(true)}><div className="relative z-10 space-y-4"><Icon name="scan-qr-code" size={32} /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">掃描識別 / Scan</h3><p className="text-[10px] font-bold opacity-80 uppercase tracking-widest max-w-[180px]">掃描標籤即可檢索個體生長履歷，並快速錄入數據。</p><div className="bg-black text-white px-8 py-3 rounded-full text-[9px] font-black uppercase tracking-widest inline-block italic shadow-xl">啟動相機掃描</div></div><Icon name="history" size={180} className="absolute -bottom-10 -right-10 opacity-10 rotate-12" /></div>
                                 <div className="bg-zinc-900/80 border border-white/5 p-8 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden active:scale-[0.98] transition-all" onClick={() => { if(usageStats.current >= usageStats.limit) { setShowUpgradeModal(true); return; } setActiveTab('entry'); setScannedID(null); setViewingIndividual(null); }}><div className="relative z-10 space-y-4"><Icon name="sparkles" size={32} color="#CA8A04" /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">新命錄入 / New</h3><p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">建立新生命數據，填寫遺傳資訊並產生 QR 標籤。</p><div className="bg-zinc-800 text-zinc-400 px-8 py-2.5 rounded-full text-[8px] font-black uppercase tracking-widest inline-block italic border border-white/5 shadow-inner">Register_Hatch</div></div></div>
@@ -403,7 +404,8 @@
                                 <div className="glass-card p-7 rounded-[2.8rem] border border-white/5 space-y-6 shadow-xl mx-2">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-1"><label className="text-[8px] text-zinc-500 font-black uppercase italic tracking-widest">System Master ID</label><div className="text-3xl font-black text-white italic tracking-tighter font-mono">{bonaID}</div><button onClick={() => setShowPrintModal(true)} className="flex items-center gap-2 text-[10px] text-[#CA8A04] font-black uppercase mt-3 py-2 px-4 bg-[#CA8A04]/10 rounded-full border border-[#CA8A04]/20 active:scale-95 transition-all"><Icon name="printer" size={14} /> 產生列印標籤</button></div>
-                                        <button onClick={() => setSerial(Math.floor(Math.random() * 900) + 100)} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
+                                        {/* 重置按鈕：讓掃描進入的補登模式也可以刷新 ID */}
+                                        <button onClick={() => { setScannedID(null); setSerial(Math.floor(Math.random() * 900) + 100); }} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6">
                                         <div className="space-y-1"><label className="text-[9px] text-[#CA8A04] font-black uppercase italic ml-1">★ 挖出日期</label><input type="date" value={entry.hatchDate} onChange={e=>setEntry({...entry, hatchDate: e.target.value})} className="gold-glow" /></div>
