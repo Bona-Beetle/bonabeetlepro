@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BONA BEETLE PRO | v43.5</title>
+    <title>BONA BEETLE PRO</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -95,8 +95,9 @@
                  <img src="logo.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="w-full h-full object-cover" alt="Bona Logo">
                  <i class="fa-solid fa-bug text-4xl text-bona-gold hidden absolute"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white tracking-widest">BONA<span class="text-bona-gold">PRO</span></h1>
-            <p class="text-bona-muted text-xs mt-2 uppercase tracking-widest">System v43.5</p>
+            <!-- TITLE UPDATED: BONA BEETLE PRO -->
+            <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-widest">BONA <span class="text-bona-gold">BEETLE PRO</span></h1>
+            <!-- VERSION TEXT REMOVED -->
         </div>
         
         <div class="w-full glass-panel p-6 rounded-xl shadow-2xl">
@@ -367,29 +368,22 @@
                     </div>
                 </div>
                 
-                <!-- Dates -->
+                <!-- Dates (Layout Fixed) -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs text-gray-500 uppercase mb-1">飼育日期 (Check Date)</label>
+                        <label class="block text-xs text-gray-500 uppercase mb-1 truncate">飼育日期</label>
                         <input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm focus:border-bona-gold outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-500 uppercase mb-1">羽化/孵化日 (Hatch Date)</label>
+                        <label class="block text-xs text-gray-500 uppercase mb-1 truncate">羽化/孵化日</label>
                         <input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm focus:border-bona-gold outline-none">
                     </div>
                 </div>
 
-                <!-- Lineage -->
+                <!-- Lineage (Generation is now Text Input) -->
                 <div>
                      <label class="block text-xs text-gray-500 uppercase mb-1">累代 (Generation)</label>
-                     <select id="new-gen" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none">
-                        <option value="CB">CB</option>
-                        <option value="F1">F1</option>
-                        <option value="F2">F2</option>
-                        <option value="F3">F3</option>
-                        <option value="WF">WF</option>
-                        <option value="Unknown">Unknown</option>
-                    </select>
+                     <input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none uppercase" placeholder="e.g. CBF1, WF1">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-2">
@@ -627,7 +621,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error('Network response was not ok');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                
                 const data = await response.json();
 
                 if (data && data.id) {
@@ -639,7 +637,7 @@
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                showNotification('連線錯誤', 'error');
+                showNotification(`連線錯誤: ${error.message}`, 'error');
             } finally {
                 showLoading(false);
             }
@@ -697,10 +695,10 @@
                     document.getElementById('d-weight').innerText = weight;
                     document.getElementById('d-check').innerText = payload.date_check;
                 } else {
-                    throw new Error('Update failed');
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
             } catch (error) {
-                showNotification('更新失敗，請重試', 'error');
+                showNotification(`更新失敗: ${error.message}`, 'error');
             } finally {
                 showLoading(false);
             }
@@ -722,7 +720,7 @@
                 id: fullId,
                 date_check: document.getElementById('new-check-date').value,
                 date_hatch: document.getElementById('new-hatch-date').value,
-                generation: document.getElementById('new-gen').value,
+                generation: document.getElementById('new-gen').value.toUpperCase(), // Text Input
                 sire_size: document.getElementById('new-sire').value || 'N/A',
                 dam_size: document.getElementById('new-dam').value || 'N/A',
                 weight: parseFloat(document.getElementById('new-weight').value),
@@ -739,14 +737,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
                 if (response.ok) {
                     showNotification(`新蟲 ${fullId} 錄入成功！`, 'success');
                     await fetchBeetleData(payload.id);
                 } else {
-                    throw new Error('Create failed');
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
             } catch (error) {
-                showNotification('錄入失敗，ID 可能已存在', 'error');
+                showNotification(`錄入失敗: ${error.message}`, 'error');
             } finally {
                 showLoading(false);
             }
