@@ -206,7 +206,7 @@
         </div>
     </div>
 
-    <!-- UPDATE MODAL (Full Fields) -->
+    <!-- UPDATE MODAL -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2"><i class="fa-solid fa-times text-xl"></i></button>
@@ -307,7 +307,7 @@
         </div>
     </div>
 
-    <!-- UPGRADE MODAL & QR MODAL (Unchanged) -->
+    <!-- UPGRADE MODAL -->
     <div id="modal-upgrade" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
         <div class="w-full max-w-sm text-center relative">
             <i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i>
@@ -317,6 +317,7 @@
         </div>
     </div>
 
+    <!-- QR Modal -->
     <div id="modal-qr" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl">
             <button onclick="closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
@@ -328,12 +329,7 @@
     </div>
 
     <script>
-        const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w"; 
-        let currentUser = localStorage.getItem('bona_user_key') || null;
-        let quotaInfo = { max: 50, used: 0 }; 
-        let html5QrcodeScanner = null;
-        let currentDetailData = null;
-
+        // *** CORE FUNCTIONS MOVED TO TOP ***
         function switchView(viewName) {
             ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
@@ -360,6 +356,63 @@
             setTimeout(() => { el.classList.add('opacity-0'); setTimeout(() => el.remove(), 300); }, 3000);
         }
 
+        // *** MAIN LOGIC ***
+        const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w"; 
+        let currentUser = localStorage.getItem('bona_user_key') || null;
+        let quotaInfo = { max: 50, used: 0 }; 
+        let html5QrcodeScanner = null;
+        let currentDetailData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Restore last used ID parts from local storage for smart increment
+            const lastPrefix = localStorage.getItem('last_prefix');
+            const lastYear = localStorage.getItem('last_year');
+            const lastBatch = localStorage.getItem('last_batch');
+            const lastSeq = localStorage.getItem('last_seq');
+
+            if (lastPrefix) document.getElementById('id-prefix').value = lastPrefix;
+            if (lastYear) document.getElementById('id-year').value = lastYear;
+            if (lastBatch) document.getElementById('id-batch').value = lastBatch;
+            if (lastSeq) {
+                // Auto increment logic
+                let nextSeq = parseInt(lastSeq) + 1;
+                document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('new-check-date').value = today;
+            document.getElementById('new-hatch-date').value = today;
+            
+            updateIDPreview();
+
+            if (currentUser) {
+                verifyLicense(currentUser, true);
+            } else {
+                switchView('login');
+            }
+        });
+
+        function cleanData(val) {
+            if (val === null || val === undefined) return '--';
+            if (typeof val === 'object') {
+                if (val.type === 'text' && val.text) return val.text.content || '--'; 
+                if (val.type === 'rich_text' && Array.isArray(val.rich_text)) return val.rich_text.length > 0 ? val.rich_text[0].plain_text : '--';
+                if (Array.isArray(val) && val.length > 0 && val[0].text) return val[0].text.content; 
+                if (val.type === 'select' && val.select) return val.select.name; 
+                if (val.select && val.select.name) return val.select.name; 
+                if (val.type === 'number') return val.number; 
+                if (val.type === 'date' && val.date) return val.date.start; 
+                if (val.start) return val.start; 
+                if (val.name) return val.name; 
+                if (val.plain_text) return val.plain_text; 
+            }
+            // Smart Unwrap: if it's a string looking like JSON object, parse it
+            if (typeof val === 'string' && (val.trim().startsWith('{') || val.trim().startsWith('['))) {
+                try { return cleanData(JSON.parse(val)); } catch(e) { return val; }
+            }
+            return val;
+        }
+
         function updateIDPreview() {
             const prefix = document.getElementById('id-prefix').value || 'D';
             const year = document.getElementById('id-year').value;
@@ -384,7 +437,6 @@
             else bar.className = 'quota-bar h-full bg-bona-gold';
         }
 
-        // --- AUTH DEBUG MODE (V47.0) ---
         async function verifyLicense(key, silent) {
             if (!silent) showLoading(true);
             try {
@@ -395,16 +447,21 @@
                 });
                 
                 const text = await response.text();
-                // DEBUG: Show exact response in notification if failed
                 let data = {};
                 try { data = JSON.parse(text); } catch(e) {}
+                // Handle unwrapped JSON/array from Make
                 if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
-
                 if (Array.isArray(data) && data.length > 0) data = data[0];
 
-                const hasKey = data.key_found || data['License Key'] || data.id || (data.max !== undefined);
-                const status = data.status || data.Status || '';
-                const isActive = status.toLowerCase().includes('active');
+                // Use cleanData to handle potential raw Notion object strings
+                const rawKey = data.key_found || data['License Key'] || data.id;
+                const rawStatus = data.status || data.Status;
+                
+                const cleanKey = cleanData(rawKey);
+                const cleanStatus = cleanData(rawStatus);
+
+                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
+                const isActive = cleanStatus && cleanStatus.toLowerCase().includes('active');
 
                 if (hasKey && isActive) {
                     currentUser = key;
@@ -414,128 +471,26 @@
                     if (!silent) showNotification('登入成功', 'success');
                     switchView('dashboard');
                 } else {
-                    let debugInfo = `狀態: ${status || 'null'}, Key: ${hasKey ? 'Yes' : 'No'}`;
-                    if (text.length < 100) debugInfo += ` | Raw: ${text}`;
-                    
+                    let failReason = !hasKey ? "找不到授權碼" : `狀態異常 [${cleanStatus}]`;
                     if (!silent) {
-                        // V47.0 DEBUG POPUP
-                        alert(`驗證失敗診斷:\n\n伺服器回應: ${text.substring(0, 150)}\n\n解析判定:\n- 找到Key: ${hasKey}\n- 狀態: ${status}`);
-                        showNotification('授權驗證失敗', 'error');
-                    } else logout();
+                        // V47.0 DIAGNOSTIC ALERT
+                        alert(`驗證失敗診斷:\n\n伺服器原始回應:\n${text.substring(0, 100)}...\n\n解析結果:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`);
+                        showNotification(`授權無效: ${failReason}`, 'error');
+                    }
+                    else logout();
                 }
             } catch (error) {
                 console.error("Auth Error", error);
-                if (!silent) showNotification('連線錯誤: ' + error.message, 'error');
+                if (!silent) showNotification('連線錯誤', 'error');
                 if(silent) logout(); 
             } finally {
                 if (!silent) showLoading(false);
             }
         }
 
-        // --- NEW FEATURE: SMART AUTO-INCREMENT ---
-        function showNewEntryForm() {
-            if (quotaInfo.used >= quotaInfo.max) {
-                document.getElementById('modal-upgrade').classList.remove('hidden');
-                return;
-            }
-            document.getElementById('form-new-entry').reset();
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('new-check-date').value = today;
-            document.getElementById('new-hatch-date').value = today;
-            
-            // Auto Increment Logic
-            const lastSeq = localStorage.getItem('last_seq');
-            const lastPrefix = localStorage.getItem('last_prefix');
-            const lastYear = localStorage.getItem('last_year');
-            const lastBatch = localStorage.getItem('last_batch');
-
-            if (lastSeq) {
-                // If context matches, increment
-                if (lastPrefix) document.getElementById('id-prefix').value = lastPrefix;
-                if (lastYear) document.getElementById('id-year').value = lastYear;
-                if (lastBatch) document.getElementById('id-batch').value = lastBatch;
-                
-                let nextSeq = parseInt(lastSeq) + 1;
-                document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
-            }
-
-            updateIDPreview();
-            document.getElementById('modal-new-entry').classList.remove('hidden');
-        }
-
-        async function handleNewEntrySubmit(e) {
-            e.preventDefault();
-            // ... (Auth & Quota checks)
-            if (!currentUser) return showNotification('請先登入', 'error');
-            if (quotaInfo.used >= quotaInfo.max) { /* ... */ return; }
-
-            closeNewEntryModal();
-            showLoading(true);
-            const fullId = updateIDPreview();
-            
-            // SAVE LOCAL STATE for Increment
-            localStorage.setItem('last_prefix', document.getElementById('id-prefix').value);
-            localStorage.setItem('last_year', document.getElementById('id-year').value);
-            localStorage.setItem('last_batch', document.getElementById('id-batch').value);
-            localStorage.setItem('last_seq', document.getElementById('id-seq').value);
-
-            try {
-                // ... (Fetch Logic same as before)
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'growth', mode: 'new', userId: currentUser, id: fullId,
-                        date_check: document.getElementById('new-check-date').value,
-                        date_hatch: document.getElementById('new-hatch-date').value,
-                        generation: document.getElementById('new-gen').value.toUpperCase(),
-                        sire_size: document.getElementById('new-sire').value || 'N/A',
-                        dam_size: document.getElementById('new-dam').value || 'N/A',
-                        weight: parseFloat(document.getElementById('new-weight').value),
-                        box_type: document.getElementById('new-box-type').value,
-                        box_vol: document.getElementById('new-box-vol').value,
-                        sub_main: document.getElementById('new-sub-main').value,
-                        sub_sec: document.getElementById('new-sub-sec').value,
-                        booster: document.getElementById('new-booster').value
-                    })
-                });
-                // ... (Response handling)
-                if (response.ok) {
-                    // Update Quota Locally
-                    quotaInfo.used += 1;
-                    updateDashboardUI();
-                    showNotification(`錄入成功: ${fullId}`, 'success');
-                    setTimeout(async () => { await fetchBeetleData(fullId); setTimeout(() => openQRModal(fullId), 500); }, 3000);
-                } else throw new Error(`HTTP ${response.status}`);
-            } catch (error) { console.error(error); showNotification('錄入完成', 'success'); } finally { showLoading(false); }
-        }
-
-        // [All other utility functions from v46.6 preserved below]
-        document.addEventListener('DOMContentLoaded', () => {
-            if (currentUser) { verifyLicense(currentUser, true); } 
-            else { switchView('login'); }
-            // ...
-        });
-        
-        function cleanData(val) {
-            if (val === null || val === undefined) return '--';
-            if (typeof val === 'object') {
-                if (val.type === 'text' && val.text) return val.text.content || '--'; 
-                if (val.type === 'rich_text' && Array.isArray(val.rich_text)) return val.rich_text.length > 0 ? val.rich_text[0].plain_text : '--';
-                if (Array.isArray(val) && val.length > 0 && val[0].text) return val[0].text.content; 
-                if (val.type === 'select' && val.select) return val.select.name; 
-                if (val.select && val.select.name) return val.select.name; 
-                if (val.type === 'number') return val.number; 
-                if (val.type === 'date' && val.date) return val.date.start; 
-                if (val.start) return val.start; 
-                if (val.name) return val.name; 
-                if (val.plain_text) return val.plain_text; 
-            }
-            if (typeof val === 'string' && (val.trim().startsWith('{') || val.trim().startsWith('['))) {
-                try { return cleanData(JSON.parse(val)); } catch(e) { return val; }
-            }
-            return val;
-        }
-        function consolidateData(rawList) {
+        // ... (Rest of fetchBeetleData, populateDetailView, etc. same as v46.6) ...
+        // Re-implementing critical data fetch logic
+         function consolidateData(rawList) {
             let final = { ...rawList[0] }; 
             const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; };
             const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id'];
@@ -639,6 +594,14 @@
             if (!key) return showNotification('請輸入授權碼', 'error');
             await verifyLicense(key, false);
         }
+        function showNewEntryForm() {
+            if (quotaInfo.used >= quotaInfo.max) {
+                document.getElementById('modal-upgrade').classList.remove('hidden');
+                return;
+            }
+            // Auto increment is handled in DOMContentLoaded mostly, but we can re-trigger if needed
+            document.getElementById('modal-new-entry').classList.remove('hidden');
+        }
         async function handleUpdateSubmit(e) {
             e.preventDefault();
             if (!currentUser) return showNotification('請先登入', 'error');
@@ -670,6 +633,62 @@
                     setTimeout(() => fetchBeetleData(id), 1500); 
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { showNotification(`更新失敗: ${error.message}`, 'error'); } finally { showLoading(false); }
+        }
+        async function handleNewEntrySubmit(e) {
+            e.preventDefault();
+            if (!currentUser) return showNotification('請先登入', 'error');
+            if (quotaInfo.used >= quotaInfo.max) {
+                closeNewEntryModal();
+                document.getElementById('modal-upgrade').classList.remove('hidden');
+                return;
+            }
+            closeNewEntryModal();
+            showLoading(true);
+            const fullId = updateIDPreview();
+
+            // SAVE STATE for next time
+            localStorage.setItem('last_prefix', document.getElementById('id-prefix').value);
+            localStorage.setItem('last_year', document.getElementById('id-year').value);
+            localStorage.setItem('last_batch', document.getElementById('id-batch').value);
+            localStorage.setItem('last_seq', document.getElementById('id-seq').value);
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'growth', mode: 'new', userId: currentUser, id: fullId,
+                        date_check: document.getElementById('new-check-date').value,
+                        date_hatch: document.getElementById('new-hatch-date').value,
+                        generation: document.getElementById('new-gen').value.toUpperCase(),
+                        sire_size: document.getElementById('new-sire').value || 'N/A',
+                        dam_size: document.getElementById('new-dam').value || 'N/A',
+                        weight: parseFloat(document.getElementById('new-weight').value),
+                        box_type: document.getElementById('new-box-type').value,
+                        box_vol: document.getElementById('new-box-vol').value,
+                        sub_main: document.getElementById('new-sub-main').value,
+                        sub_sec: document.getElementById('new-sub-sec').value,
+                        booster: document.getElementById('new-booster').value
+                    })
+                });
+                const text = await response.text();
+                let data = {}; try { data = JSON.parse(text); } catch(e) {}
+                if (response.ok) {
+                    if (data.status === 'error' && data.message === 'Quota Exceeded') {
+                        showNotification('錄入失敗：額度已滿', 'error');
+                        document.getElementById('modal-upgrade').classList.remove('hidden');
+                    } else {
+                        showNotification(`錄入成功: ${fullId}`, 'success');
+                        quotaInfo.used += 1;
+                        updateDashboardUI();
+                        // Auto-increment the input for next immediate entry
+                        const nextSeq = parseInt(document.getElementById('id-seq').value) + 1;
+                        document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
+                        updateIDPreview();
+
+                        setTimeout(async () => { await fetchBeetleData(fullId); setTimeout(() => openQRModal(fullId), 500); }, 3000);
+                    }
+                } else throw new Error(`HTTP ${response.status}`);
+            } catch (error) { console.error(error); showNotification('錄入完成', 'success'); } finally { showLoading(false); }
         }
         function showQRCodeForCurrent() { currentDetailData && currentDetailData.id ? openQRModal(cleanData(currentDetailData.id)) : showNotification('無資料可生成 QR Code', 'error'); }
         function openQRModal(id) {
