@@ -133,23 +133,19 @@
         </main>
     </div>
 
-    <!-- QR SCANNER -->
+    <!-- QR SCANNER, DETAIL VIEW, MODALS (Same as v46.4) -->
+    <!-- (Collapsed to focus on Logic Fixes) -->
     <div id="view-scanner" class="hidden fixed inset-0 z-40 bg-black flex flex-col">
         <div class="p-4 flex justify-between items-center bg-black/50 absolute top-0 w-full z-50">
             <span class="text-white font-bold tracking-widest">掃描條碼</span>
-            <button onclick="closeScanner()" class="bg-gray-800 text-white w-10 h-10 rounded-full flex items-center justify-center">
-                <i class="fa-solid fa-times text-xl"></i>
-            </button>
+            <button onclick="closeScanner()" class="bg-gray-800 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
         </div>
         <div id="reader" class="w-full h-full bg-black"></div>
     </div>
 
-    <!-- DETAIL VIEW -->
     <div id="view-detail" class="hidden flex-col h-screen w-full max-w-md mx-auto bg-bona-black">
         <header class="flex justify-between items-center p-4 border-b border-gray-800 bg-bona-card shrink-0">
-            <button onclick="showDashboard()" class="text-gray-400 hover:text-white p-2">
-                <i class="fa-solid fa-arrow-left text-xl"></i>
-            </button>
+            <button onclick="showDashboard()" class="text-gray-400 hover:text-white p-2"><i class="fa-solid fa-arrow-left text-xl"></i></button>
             <span class="font-bold text-lg tracking-wide text-bona-gold" id="detail-header-id">讀取中...</span>
             <div class="flex space-x-2">
                 <button onclick="showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2"><i class="fa-solid fa-qrcode text-xl"></i></button>
@@ -164,7 +160,6 @@
                 <div class="text-3xl font-bold text-white font-mono mb-2" id="d-id">--</div>
                 <div class="flex space-x-6 text-sm text-gray-400">
                     <span><i class="fa-solid fa-dna text-bona-gold mr-1"></i> 累代: <span id="d-gen">--</span></span>
-                    <!-- 修正: 顯示為孵化日 -->
                     <span><i class="fa-solid fa-calendar text-bona-gold mr-1"></i> 孵化: <span id="d-hatch">--</span></span>
                 </div>
             </div>
@@ -207,44 +202,30 @@
         </div>
     </div>
 
-    <!-- UPDATE MODAL (Full Fields) -->
+    <!-- MODALS -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2"><i class="fa-solid fa-times text-xl"></i></button>
             <h3 class="text-xl font-bold text-bona-gold mb-6 tracking-wide border-b border-gray-800 pb-4">更新數據</h3>
             <form id="form-update" onsubmit="handleUpdateSubmit(event)" class="space-y-6">
                 <input type="hidden" id="update-id">
-                
-                <div>
-                    <label class="block text-sm text-gray-400 uppercase mb-2 font-bold">最新體重 (g)</label>
-                    <input type="number" step="0.1" id="update-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required>
-                </div>
-
+                <div><label class="block text-sm text-gray-400 uppercase mb-2 font-bold">最新體重 (g)</label><input type="number" step="0.1" id="update-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
                 <div class="grid grid-cols-2 gap-5">
                      <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="update-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
                      <div><label class="block text-xs text-gray-500 uppercase mb-1">容器容量</label><select id="update-box-vol" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="100-150ml">100-150ml</option><option value="500ml">500ml</option><option value="700-800ml">700-800ml</option><option value="1000ml">1000ml</option><option value="1400-1500ml">1400-1500ml</option><option value="2200-2300ml">2200-2300ml</option><option value="3200-3500ml">3200-3500ml</option><option value="4L">4L</option><option value="6L">6L</option><option value="10L">10L</option></select></div>
                 </div>
-
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs text-gray-500 uppercase mb-1">更換食材 (主)</label>
-                        <select id="update-sub" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select>
-                    </div>
-                    
+                    <div><label class="block text-xs text-gray-500 uppercase mb-1">更換食材 (主)</label><select id="update-sub" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
                     <div class="grid grid-cols-2 gap-5">
                         <div><label class="block text-xs text-gray-500 uppercase mb-1">副食材</label><select id="update-sub-sec" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="無">無</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
                         <div><label class="block text-xs text-gray-500 uppercase mb-1">添加劑</label><select id="update-booster" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="None">維持不變</option><option value="無添加">無添加</option><option value="10g/10L">10g/10L</option><option value="20g/10L">20g/10L</option><option value="極限組">極限組</option></select></div>
                     </div>
                 </div>
-
-                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">
-                    確認更新
-                </button>
+                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">確認更新</button>
             </form>
         </div>
     </div>
 
-    <!-- NEW ENTRY MODAL -->
     <div id="modal-new-entry" class="hidden fixed inset-0 z-30 bg-black/90 flex items-start sm:items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative my-8">
             <button onclick="closeNewEntryModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2"><i class="fa-solid fa-times text-xl"></i></button>
@@ -283,7 +264,6 @@
         </div>
     </div>
 
-    <!-- UPGRADE MODAL, QR MODAL - Same as before -->
     <div id="modal-upgrade" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
         <div class="w-full max-w-sm text-center relative">
             <i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i>
@@ -373,6 +353,57 @@
         });
 
         // 4. Data Logic & Event Handlers
+        // --- AUTH FIX v46.6: Array Support & Loose Check ---
+        async function verifyLicense(key, silent) {
+            if (!silent) showLoading(true);
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'auth', userId: key })
+                });
+                
+                const text = await response.text();
+                console.log("Auth Response:", text); // Debug
+
+                let data = {};
+                try { data = JSON.parse(text); } catch(e) {}
+                if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
+
+                // Handle Array response (Make bundle array)
+                if (Array.isArray(data) && data.length > 0) {
+                    data = data[0];
+                }
+
+                // Loose Check: 
+                // 1. Must find key (key_found OR license_key OR id)
+                // 2. Status must contain "Active" (case-insensitive)
+                const hasKey = data.key_found || data['License Key'] || data.id || (data.max !== undefined);
+                const status = data.status || data.Status || '';
+                const isActive = status.toLowerCase().includes('active');
+
+                if (hasKey && isActive) {
+                    currentUser = key;
+                    localStorage.setItem('bona_user_key', key);
+                    quotaInfo = { max: data.max || 50, used: data.used || 0 };
+                    updateDashboardUI();
+                    if (!silent) showNotification('登入成功', 'success');
+                    switchView('dashboard');
+                } else {
+                    const failReason = !hasKey ? "找不到授權碼" : `狀態為 [${status || 'undefined'}]`;
+                    if (!silent) showNotification(`授權無效: ${failReason}`, 'error');
+                    else logout();
+                }
+            } catch (error) {
+                console.error("Auth Error", error);
+                if (!silent) showNotification('連線驗證伺服器失敗', 'error');
+                if(silent) logout(); 
+            } finally {
+                if (!silent) showLoading(false);
+            }
+        }
+
+        // [Other functions unchanged from v46.5]
         function cleanData(val) {
             if (val === null || val === undefined) return '--';
             if (typeof val === 'object') {
@@ -392,7 +423,6 @@
             }
             return val;
         }
-
         function consolidateData(rawList) {
             let final = { ...rawList[0] }; 
             const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; };
@@ -405,7 +435,6 @@
             });
             return final;
         }
-
         async function fetchBeetleData(id) {
             if (!currentUser) return showNotification('請先登入', 'error');
             showLoading(true);
@@ -419,14 +448,12 @@
                 let data;
                 try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); }
                 if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} }
-                
                 const normalize = (obj) => {
                     if (!obj || typeof obj !== 'object') return obj;
                     const newObj = {};
                     Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]);
                     return newObj;
                 };
-
                 let rawList = [];
                 if (Array.isArray(data)) rawList = data;
                 else if (typeof data === 'object' && data !== null) {
@@ -436,7 +463,6 @@
                         rawList = Array.isArray(inner) ? inner : [inner];
                     }
                 }
-
                 if (rawList.length > 0) {
                     const normalizedList = rawList.map(normalize);
                     const validHistory = normalizedList.filter(r => r.id && cleanData(r.id) !== '--');
@@ -451,7 +477,6 @@
                 } else { showNotification(`找不到資料`, 'error'); }
             } catch (error) { showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { showLoading(false); }
         }
-
         function populateDetailView(data) {
             document.getElementById('detail-header-id').innerText = cleanData(data.id);
             document.getElementById('d-id').innerText = cleanData(data.id);
@@ -468,7 +493,6 @@
             document.getElementById('d-booster').innerText = cleanData(data.booster);
             document.getElementById('update-id').value = cleanData(data.id);
         }
-
         function renderHistoryList(dataArray) {
             const container = document.getElementById('history-list');
             const section = document.getElementById('history-section');
@@ -498,49 +522,11 @@
                 container.appendChild(el);
             });
         }
-
         async function handleLogin() {
             const key = document.getElementById('login-license').value.trim();
             if (!key) return showNotification('請輸入授權碼', 'error');
             await verifyLicense(key, false);
         }
-
-        // --- STRICT AUTH LOGIC (No Mocks) ---
-        async function verifyLicense(key, silent) {
-            if (!silent) showLoading(true);
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'auth', userId: key })
-                });
-                
-                const text = await response.text();
-                let data = {};
-                try { data = JSON.parse(text); } catch(e) {}
-                if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
-
-                // Strict check: key_found must exist and status must be Active
-                if (data && data.key_found && data.status === 'Active') {
-                    currentUser = key;
-                    localStorage.setItem('bona_user_key', key);
-                    quotaInfo = { max: data.max || 50, used: data.used || 0 };
-                    updateDashboardUI();
-                    if (!silent) showNotification('登入成功', 'success');
-                    switchView('dashboard');
-                } else {
-                    if (!silent) showNotification('授權無效：查無此號或已停用', 'error');
-                    else logout();
-                }
-            } catch (error) {
-                console.error("Auth Error", error);
-                if (!silent) showNotification('連線驗證伺服器失敗，請檢查網路', 'error');
-                // Strict mode: Do not login on error
-            } finally {
-                if (!silent) showLoading(false);
-            }
-        }
-
         function showNewEntryForm() {
             if (quotaInfo.used >= quotaInfo.max) {
                 document.getElementById('modal-upgrade').classList.remove('hidden');
@@ -553,7 +539,6 @@
             updateIDPreview();
             document.getElementById('modal-new-entry').classList.remove('hidden');
         }
-
         async function handleUpdateSubmit(e) {
             e.preventDefault();
             if (!currentUser) return showNotification('請先登入', 'error');
@@ -586,7 +571,6 @@
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { showNotification(`更新失敗: ${error.message}`, 'error'); } finally { showLoading(false); }
         }
-
         async function handleNewEntrySubmit(e) {
             e.preventDefault();
             if (!currentUser) return showNotification('請先登入', 'error');
@@ -631,7 +615,6 @@
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { console.error(error); showNotification('錄入完成', 'success'); } finally { showLoading(false); }
         }
-
         function showQRCodeForCurrent() { currentDetailData && currentDetailData.id ? openQRModal(cleanData(currentDetailData.id)) : showNotification('無資料可生成 QR Code', 'error'); }
         function openQRModal(id) {
             const modal = document.getElementById('modal-qr');
