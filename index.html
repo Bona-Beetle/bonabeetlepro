@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bona PRO | 系統診斷模式</title>
+    <title>Bona PRO | 商務營利終端</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="logo.png">
@@ -23,7 +23,13 @@
         .main-scroll-container { flex: 1; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 200px; width: 100%; }
         input, select { color-scheme: dark; background: #18181B; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; font-size: 14px; width: 100%; outline: none; }
         #reader { width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid rgba(202, 138, 4, 0.3); background: #000; min-height: 300px; }
-        /* 強制顯示的診斷盒樣式 */
+        .glass-card { background: rgba(24, 24, 27, 0.9); backdrop-blur: 20px; border: 1px solid rgba(255, 255, 255, 0.08); }
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scanGlow { 0% { top: -10%; } 100% { top: 110%; } }
+        .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--b-gold); box-shadow: 0 0 20px var(--b-gold); animation: scanGlow 2s infinite linear; z-index: 20; }
+        
+        /* Debug 視窗樣式 */
         .debug-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; padding: 20px; overflow: auto; display: flex; flex-direction: column; }
         .debug-content { font-family: 'JetBrains Mono', monospace; color: #00ff00; white-space: pre-wrap; word-break: break-all; font-size: 12px; }
         .debug-toggle { position: fixed; bottom: 100px; right: 20px; z-index: 5000; background: #ef4444; color: white; padding: 10px; rounded-full; border: 2px solid white; box-shadow: 0 0 10px rgba(255,0,0,0.5); font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
@@ -36,20 +42,25 @@
         const Icon = ({ name, size = 20, color = "currentColor" }) => <i key={name} data-lucide={name} style={{ width: size, height: size, color }}></i>;
 
         const App = () => {
+            // --- State 定義 (包含 saveStatus) ---
+            const [hasStarted, setHasStarted] = useState(false);
             const [activeTab, setActiveTab] = useState('home');
             const [loading, setLoading] = useState(false);
+            const [saveStatus, setSaveStatus] = useState('idle'); // 這裡定義了 saveStatus
             const [isScanning, setIsScanning] = useState(false);
-            const [showDebug, setShowDebug] = useState(false); // 控制診斷盒顯示
-            const [logs, setLogs] = useState([]); // 儲存日誌
+            const [showDebug, setShowDebug] = useState(false);
+            const [logs, setLogs] = useState([]);
             const [viewingIndividual, setViewingIndividual] = useState(null);
             
-            // --- 授權 ---
             const [userId, setUserId] = useState(() => localStorage.getItem('bona_pro_license') || '');
             const [showLoginModal, setShowLoginModal] = useState(!localStorage.getItem('bona_pro_license'));
+            const [logoError, setLogoError] = useState(false);
 
             const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w";
-            // 嘗試載入 logo.jpg，若失敗會隱藏
-            const [logoError, setLogoError] = useState(false);
+
+            const SUBSTRATES = ["BONA木屑", "金蟲銀蟲木屑", "AKD木屑", "BEVO木屑", "P2木屑", "金剛木屑", "白羊木屑", "蟲心木屑", "蟲植木屑", "自發木屑", "好蟲多木屑", "星空木屑", "小糕菌", "雲芝菌", "育成土", "育成木屑", "袖珍菌", "重壓菌", "廢木屑", "其他"];
+            const CONTAINERS = ["布丁杯", "塑膠方盒", "塑膠圓筒", "日規雙孔罐", "日規單孔罐", "貝殼箱", "祈星方盒", "整理箱", "其他"];
+            const VOLUMES = ["100-150ml", "500ml", "700-800ml", "1000ml", "1400-1500ml", "2200-2300ml", "3200-3500ml", "4L", "6L", "10L"];
 
             const [prefix, setPrefix] = useState('PGK');
             const [serial, setSerial] = useState(Math.floor(Math.random() * 900) + 100);
@@ -64,10 +75,8 @@
                 parentMaleSize: '', parentFemaleSize: '', generation: 'CBF1'
             });
 
-            // 啟動 Lucide
             useEffect(() => { if (window.lucide) window.lucide.createIcons(); });
 
-            // --- 日誌系統 ---
             const addLog = (msg) => {
                 const time = new Date().toLocaleTimeString();
                 console.log(`[${time}] ${msg}`);
@@ -82,39 +91,28 @@
                 }
             };
 
-            // --- 診斷用 Fetch ---
+            // --- 數據檢索 ---
             const fetchIndividualData = async (id) => {
                 setLoading(true);
-                addLog("🚀 發送請求給 Make.com...");
-                addLog("Target ID: " + id);
-                addLog("License: " + userId);
-                
+                addLog("🚀 Fetching Data for ID: " + id);
                 try {
                     const res = await fetch(WEBHOOK_URL, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ type: 'query', id, license: userId })
                     });
-                    
                     const responseText = await res.text();
-                    addLog("📥 收到 Make 回應:\n" + responseText);
+                    addLog("📥 Response:\n" + responseText);
 
                     let data;
-                    try { data = JSON.parse(responseText); } catch(e) { throw new Error("回傳資料不是 JSON 格式"); }
+                    try { data = JSON.parse(responseText); } catch(e) { throw new Error("JSON Parse Error"); }
 
-                    // 嘗試尋找歷史紀錄
                     let historyRaw = data.raw || data.growthHistory || data;
-                    if (typeof historyRaw === 'string') {
-                        addLog("⚠️ 偵測到字串化 JSON，嘗試二次解析...");
-                        historyRaw = JSON.parse(historyRaw);
-                    }
+                    if (typeof historyRaw === 'string') historyRaw = JSON.parse(historyRaw);
 
                     if (!Array.isArray(historyRaw) || historyRaw.length === 0) {
-                        throw new Error("解析後的資料為空，或格式不正確 (Not an Array)"); 
+                        throw new Error("Empty Data Array"); 
                     }
                     
-                    addLog(`✅ 成功解析 ${historyRaw.length} 筆歷史紀錄`);
-
-                    // 萬用取值
                     const getValue = (item, keys) => {
                         const paths = [keys, keys.toLowerCase(), `properties value.${keys}.number`, `properties value.${keys}.select.name`, `properties.${keys}.number`];
                         for (let path of paths) {
@@ -130,7 +128,7 @@
                         sub: getValue(item, 'Sub_Main') || getValue(item, 'sub')
                     })).filter(i => i.date);
 
-                    if (history.length === 0) throw new Error("過濾後無有效日期資料");
+                    if (history.length === 0) throw new Error("No Valid History");
                     
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
                     const latest = history[history.length - 1];
@@ -139,7 +137,6 @@
                         id: id,
                         currentWeight: latest.weight,
                         growthHistory: history,
-                        // 嘗試抓取血統
                         parentMaleSize: getValue(history[0], 'Sire_Size') || '-',
                         parentFemaleSize: getValue(history[0], 'Dam_Size') || '-',
                         generation: getValue(history[0], 'Generation') || '-'
@@ -148,16 +145,11 @@
                     setScannedID(id);
                     setLoading(false);
                     setActiveTab('detail');
-                    addLog("✅ 成功進入檢視模式");
-                    // 自動開啟 Debug 視窗 3秒讓用戶看到結果
-                    setShowDebug(true);
-                    setTimeout(() => setShowDebug(false), 3000);
+                    addLog("✅ Mode: View");
 
                 } catch (e) { 
                     setLoading(false);
-                    addLog("❌ 錯誤: " + e.message);
-                    addLog("⚠️ 系統判定為新個體，進入【補登模式】");
-                    setShowDebug(true); // 錯誤時強制顯示 Debug
+                    addLog("⚠️ Mode: Recovery (New Entry) - " + e.message);
                     setViewingIndividual(null);
                     setScannedID(id);
                     setActiveTab('entry'); 
@@ -167,28 +159,26 @@
             // --- 掃描器 ---
             useEffect(() => {
                 if (!isScanning) return;
-                addLog("📷 正在啟動相機...");
                 const timer = setTimeout(() => {
                     const html5QrCode = new Html5Qrcode("reader");
                     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
                         let finalId = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop().split('?')[0] : decodedText;
-                        addLog("✅ 掃描成功: " + finalId);
+                        addLog("Scan: " + finalId);
                         setIsScanning(false);
                         html5QrCode.stop().then(() => fetchIndividualData(finalId.toUpperCase()));
                     }).catch(err => {
-                        addLog("❌ 相機啟動失敗: " + err);
+                        addLog("Camera Error: " + err);
                         setIsScanning(false);
-                        setShowDebug(true);
                     });
                 }, 500);
                 return () => clearTimeout(timer);
             }, [isScanning]);
 
-            // --- 強制同步修復 ---
+            // --- 同步 ---
             const handleSync = async () => {
                 if (!entry.weight) return alert("請輸入體重");
                 setLoading(true);
-                addLog("🚀 開始同步數據...");
+                addLog("🚀 Syncing...");
                 try {
                     const payload = { 
                         type: 'growth', 
@@ -209,29 +199,21 @@
                         timestamp: new Date().toISOString() 
                     };
                     
-                    addLog("Payload: " + JSON.stringify(payload));
-
                     const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (res.ok) {
                         setSaveStatus('success');
-                        addLog("✅ 同步成功！");
                         setTimeout(() => { 
                             setSaveStatus('idle'); setLoading(false); setActiveTab('home'); 
-                            setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); 
+                            setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); setLogs([]);
                         }, 2000);
                     } else throw new Error("API Error");
-                } catch (e) { setLoading(false); addLog("❌ 上傳失敗: " + e.message); setShowDebug(true); }
+                } catch (e) { setLoading(false); addLog("Sync Fail: " + e.message); }
             };
 
-            // --- 介面渲染 ---
             if (showLoginModal) return (
                 <div className="h-full flex items-center justify-center p-8 bg-black">
                     <div className="w-full max-w-sm text-center space-y-4">
-                        {!logoError ? (
-                            <img src="logo.jpg" className="w-24 h-24 mx-auto rounded-2xl mb-4 border border-white/10" onError={() => setLogoError(true)} />
-                        ) : (
-                            <div className="text-4xl mb-4">🪲</div>
-                        )}
+                        {!logoError ? <img src="logo.jpg" className="w-24 h-24 mx-auto rounded-2xl mb-4 border border-white/10" onError={() => setLogoError(true)} /> : <div className="text-4xl mb-4">🪲</div>}
                         <h2 className="text-2xl font-black text-white">Bona Terminal</h2>
                         <input type="text" placeholder="LICENSE KEY" value={userId} onChange={e=>setUserId(e.target.value)} className="text-center font-mono text-[#CA8A04]" />
                         <button onClick={handleLogin} className="w-full bg-[#CA8A04] text-black font-black py-4 rounded-xl">LOGIN</button>
@@ -243,44 +225,29 @@
                 <div className="h-full flex flex-col bg-black text-white relative">
                     <div className="bg-blueprint"></div>
                     
-                    {/* 強制診斷按鈕 */}
                     <button onClick={() => setShowDebug(!showDebug)} className="debug-toggle">🐞</button>
-
-                    {/* 診斷訊息框 */}
-                    {showDebug && (
-                        <div className="debug-overlay">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-[#CA8A04] font-black">SYSTEM LOGS</h3>
-                                <button onClick={()=>setShowDebug(false)} className="bg-zinc-800 px-4 py-2 rounded text-xs">CLOSE</button>
-                            </div>
-                            <div className="debug-content">
-                                {logs.map((log, i) => <div key={i} className="mb-2 border-b border-white/10 pb-1">{log}</div>)}
-                            </div>
-                        </div>
-                    )}
+                    {showDebug && <div className="debug-overlay"><div className="flex justify-between items-center mb-4"><h3 className="text-[#CA8A04] font-black">LOGS</h3><button onClick={()=>setShowDebug(false)} className="bg-zinc-800 px-4 py-2 rounded text-xs">CLOSE</button></div><div className="debug-content">{logs.map((log, i) => <div key={i} className="mb-2 border-b border-white/10 pb-1">{log}</div>)}</div></div>}
 
                     {loading && <div className="fixed inset-0 z-[1500] bg-black/90 flex items-center justify-center"><div className="text-[#CA8A04] font-black animate-pulse">PROCESSING...</div></div>}
-                    
                     {saveStatus === 'success' && <div className="fixed inset-0 z-[1500] bg-black/90 flex items-center justify-center"><div className="text-green-500 font-black text-2xl">SUCCESS</div></div>}
-
                     {isScanning && <div className="fixed inset-0 z-[1100] bg-black p-6 flex flex-col justify-center"><div id="reader"></div><button onClick={()=>setIsScanning(false)} className="mt-8 bg-zinc-800 py-4 rounded-xl font-black">CANCEL</button></div>}
 
                     <main className="main-scroll-container px-6 pt-12">
                         <header className="flex justify-between items-center mb-8">
                             <div className="space-y-1"><p className="text-[10px] text-green-500">● {userId}</p><h2 className="text-2xl font-black italic">Bona_Terminal</h2></div>
-                            <button onClick={()=>{localStorage.removeItem('bona_pro_license');window.location.reload()}}><i data-lucide="log-out"></i></button>
+                            <button onClick={()=>{localStorage.removeItem('bona_pro_license');window.location.reload()}}><Icon name="log-out" size={18} /></button>
                         </header>
 
                         {activeTab === 'home' && (
                             <div className="space-y-4">
                                 <div className="bg-gradient-to-br from-[#CA8A04] to-yellow-800 p-8 rounded-[2.5rem] text-black shadow-xl active:scale-95 transition-all" onClick={() => setIsScanning(true)}>
-                                    <i data-lucide="scan" className="w-8 h-8 mb-4"></i>
-                                    <h3 className="text-2xl font-black italic">SCAN / 掃描</h3>
+                                    <Icon name="scan" size={32} />
+                                    <h3 className="text-2xl font-black italic mt-4">SCAN / 掃描</h3>
                                     <p className="text-xs font-bold opacity-80 mt-1">檢索與更新個體</p>
                                 </div>
                                 <div className="bg-zinc-900 border border-white/10 p-8 rounded-[2.5rem] active:scale-95 transition-all" onClick={() => { setActiveTab('entry'); setScannedID(null); setViewingIndividual(null); }}>
-                                    <i data-lucide="plus" className="w-8 h-8 mb-4 text-[#CA8A04]"></i>
-                                    <h3 className="text-2xl font-black italic">NEW / 新命</h3>
+                                    <Icon name="plus" size={32} color="#CA8A04" />
+                                    <h3 className="text-2xl font-black italic mt-4">NEW / 新命</h3>
                                     <p className="text-xs text-zinc-500 font-bold mt-1">建立新檔案</p>
                                 </div>
                             </div>
@@ -288,7 +255,7 @@
 
                         {(activeTab === 'detail' || activeTab === 'entry') && (
                             <div className="space-y-6 pb-20">
-                                <button onClick={()=>setActiveTab('home')} className="bg-zinc-900 p-3 rounded-xl mb-4"><i data-lucide="arrow-left"></i></button>
+                                <button onClick={()=>setActiveTab('home')} className="bg-zinc-900 p-3 rounded-xl mb-4"><Icon name="arrow-left" /></button>
                                 
                                 <div className="glass-card p-6 rounded-[2rem]">
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TARGET ID</p>
@@ -304,9 +271,7 @@
                                         </div>
                                         <div className="space-y-2 max-h-40 overflow-y-auto">
                                             {viewingIndividual.growthHistory.map((h,i) => (
-                                                <div key={i} className="flex justify-between text-xs font-mono text-zinc-400">
-                                                    <span>{h.date}</span><span>{h.sub}</span><span className="text-white font-bold">{h.weight}g</span>
-                                                </div>
+                                                <div key={i} className="flex justify-between text-xs font-mono text-zinc-400"><span>{h.date}</span><span>{h.sub}</span><span className="text-white font-bold">{h.weight}g</span></div>
                                             ))}
                                         </div>
                                     </div>
@@ -317,12 +282,10 @@
                                         <p className="text-[10px] text-[#CA8A04] font-bold mb-2">INPUT WEIGHT (G)</p>
                                         <input type="number" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-40 mx-auto border-b border-white/20 focus:border-[#CA8A04]" placeholder="0.0" />
                                     </div>
-                                    
                                     <div className="grid grid-cols-2 gap-3">
                                         <div><label className="text-[9px] text-zinc-500 ml-1">日期</label><input type="date" value={entry.checkDate} onChange={e=>setEntry({...entry, checkDate: e.target.value})} /></div>
                                         <div><label className="text-[9px] text-zinc-500 ml-1">添加劑</label><select value={entry.booster} onChange={e=>setEntry({...entry, booster: e.target.value})}>{["無添加", "10g/10L", "20g/10L", "極限組"].map(o=><option key={o}>{o}</option>)}</select></div>
                                     </div>
-
                                     {!viewingIndividual && (
                                         <div className="space-y-3 pt-4 border-t border-white/10">
                                             <p className="text-[10px] text-zinc-500 font-bold">GENETICS INFO (必填)</p>
@@ -333,21 +296,28 @@
                                             <input type="text" placeholder="Generation (累代)" value={entry.generation} onChange={e=>setEntry({...entry, generation: e.target.value})} />
                                         </div>
                                     )}
-
                                     <div className="grid grid-cols-2 gap-3 pt-2">
                                         <select value={entry.subMain} onChange={e=>setEntry({...entry, subMain: e.target.value})}>{SUBSTRATES.map(o=><option key={o}>{o}</option>)}</select>
                                         <select value={entry.subSecondary} onChange={e=>setEntry({...entry, subSecondary: e.target.value})}>{SUBSTRATES.map(o=><option key={o}>{o}</option>)}</select>
                                         <select value={entry.containerType} onChange={e=>setEntry({...entry, containerType: e.target.value})}>{CONTAINERS.map(o=><option key={o}>{o}</option>)}</select>
                                         <select value={entry.containerVolume} onChange={e=>setEntry({...entry, containerVolume: e.target.value})}>{VOLUMES.map(o=><option key={o}>{o}</option>)}</select>
                                     </div>
-
-                                    <button onClick={()=>handleSync('growth')} className="w-full bg-[#CA8A04] text-black font-black py-5 rounded-2xl text-xs tracking-widest shadow-xl active:scale-95 transition-all">
-                                        {viewingIndividual ? 'UPDATE RECORD' : 'CREATE NEW FILE'}
-                                    </button>
+                                    <button onClick={()=>handleSync('growth')} className="w-full bg-[#CA8A04] text-black font-black py-5 rounded-2xl text-xs tracking-widest shadow-xl active:scale-95 transition-all">{viewingIndividual ? 'UPDATE RECORD' : 'CREATE NEW FILE'}</button>
                                 </div>
                             </div>
                         )}
                     </main>
+
+                    {/* 底部導覽：修復按鈕點擊重置狀態 */}
+                    <nav className="fixed bottom-0 left-0 right-0 p-8 z-[100] pointer-events-none max-w-lg mx-auto">
+                        <div className="h-24 bg-zinc-900/95 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.9)] flex items-center justify-around px-4 pointer-events-auto">
+                            <button onClick={()=>setActiveTab('home')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'home' ? 'text-[#CA8A04] scale-110 font-bold' : 'text-zinc-700'}`}><Icon name="layout-dashboard" size={22} /><span className="text-[8px] font-black uppercase tracking-widest font-mono leading-none">Hub</span></button>
+                            <button onClick={()=>setActiveTab('records')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'records' ? 'text-[#CA8A04] scale-110 font-bold' : 'text-zinc-700'}`}><Icon name="history" size={22} /><span className="text-[8px] font-black uppercase tracking-widest font-mono leading-none">Logs</span></button>
+                            <button onClick={() => { setActiveTab('entry'); setScannedID(null); setViewingIndividual(null); setSaveStatus('idle'); setIsScanning(false); }} className="w-18 h-18 bg-gradient-to-br from-yellow-700 to-[#CA8A04] rounded-full -mt-16 border-[10px] border-black flex items-center justify-center text-black shadow-[0_20px_50px_rgba(202,138,4,0.5)] active:scale-90 transition-all relative"><Icon name="plus" size={32} /></button>
+                            <button onClick={()=>setActiveTab('analytics')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'analytics' ? 'text-[#CA8A04] scale-110 font-bold' : 'text-zinc-700'}`}><Icon name="microscope" size={22} /><span className="text-[8px] font-black uppercase tracking-widest font-mono leading-none">Lab</span></button>
+                            <button onClick={()=>setActiveTab('vault')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'vault' ? 'text-[#CA8A04] scale-110 font-bold' : 'text-zinc-700'}`}><Icon name="shield-check" size={22} /><span className="text-[8px] font-black uppercase tracking-widest font-mono leading-none">Vault</span></button>
+                        </div>
+                    </nav>
                 </div>
             );
         };
