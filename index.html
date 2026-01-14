@@ -6,7 +6,7 @@
     <title>Bona PRO | 系統診斷模式</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="icon" type="image/png" href="logo.jpg">
+    <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -23,7 +23,10 @@
         .main-scroll-container { flex: 1; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 200px; width: 100%; }
         input, select { color-scheme: dark; background: #18181B; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; font-size: 14px; width: 100%; outline: none; }
         #reader { width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid rgba(202, 138, 4, 0.3); background: #000; min-height: 300px; }
-        .debug-box { background: #000; border: 1px solid #00ff00; color: #00ff00; font-family: monospace; padding: 10px; font-size: 10px; overflow-x: auto; white-space: pre-wrap; margin-top: 10px; border-radius: 8px; }
+        /* 強制顯示的診斷盒樣式 */
+        .debug-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; padding: 20px; overflow: auto; display: flex; flex-direction: column; }
+        .debug-content { font-family: 'JetBrains Mono', monospace; color: #00ff00; white-space: pre-wrap; word-break: break-all; font-size: 12px; }
+        .debug-toggle { position: fixed; bottom: 100px; right: 20px; z-index: 5000; background: #ef4444; color: white; padding: 10px; rounded-full; border: 2px solid white; box-shadow: 0 0 10px rgba(255,0,0,0.5); font-weight: bold; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="h-full">
@@ -36,7 +39,8 @@
             const [activeTab, setActiveTab] = useState('home');
             const [loading, setLoading] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
-            const [debugLog, setDebugLog] = useState(null); // 診斷日誌
+            const [showDebug, setShowDebug] = useState(false); // 控制診斷盒顯示
+            const [logs, setLogs] = useState([]); // 儲存日誌
             const [viewingIndividual, setViewingIndividual] = useState(null);
             
             // --- 授權 ---
@@ -44,7 +48,8 @@
             const [showLoginModal, setShowLoginModal] = useState(!localStorage.getItem('bona_pro_license'));
 
             const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w";
-            const logoUrl = "logo.jpg";
+            // 嘗試載入 logo.jpg，若失敗會隱藏
+            const [logoError, setLogoError] = useState(false);
 
             const [prefix, setPrefix] = useState('PGK');
             const [serial, setSerial] = useState(Math.floor(Math.random() * 900) + 100);
@@ -59,20 +64,31 @@
                 parentMaleSize: '', parentFemaleSize: '', generation: 'CBF1'
             });
 
-            // 啟動 Lucide Icons
+            // 啟動 Lucide
             useEffect(() => { if (window.lucide) window.lucide.createIcons(); });
+
+            // --- 日誌系統 ---
+            const addLog = (msg) => {
+                const time = new Date().toLocaleTimeString();
+                console.log(`[${time}] ${msg}`);
+                setLogs(prev => [`[${time}] ${msg}`, ...prev]);
+            };
 
             const handleLogin = () => {
                 if(userId.trim()) {
                     localStorage.setItem('bona_pro_license', userId.trim());
                     setShowLoginModal(false);
+                    addLog("登入成功: " + userId);
                 }
             };
 
             // --- 診斷用 Fetch ---
             const fetchIndividualData = async (id) => {
                 setLoading(true);
-                setDebugLog("開始連線 Make... ID: " + id);
+                addLog("🚀 發送請求給 Make.com...");
+                addLog("Target ID: " + id);
+                addLog("License: " + userId);
+                
                 try {
                     const res = await fetch(WEBHOOK_URL, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -80,19 +96,23 @@
                     });
                     
                     const responseText = await res.text();
-                    console.log("Raw Response:", responseText);
-                    setDebugLog("Make 回傳原始數據:\n" + responseText); // 顯示在螢幕上
+                    addLog("📥 收到 Make 回應:\n" + responseText);
 
                     let data;
-                    try { data = JSON.parse(responseText); } catch(e) { throw new Error("JSON 解析失敗"); }
+                    try { data = JSON.parse(responseText); } catch(e) { throw new Error("回傳資料不是 JSON 格式"); }
 
                     // 嘗試尋找歷史紀錄
                     let historyRaw = data.raw || data.growthHistory || data;
-                    if (typeof historyRaw === 'string') historyRaw = JSON.parse(historyRaw);
+                    if (typeof historyRaw === 'string') {
+                        addLog("⚠️ 偵測到字串化 JSON，嘗試二次解析...");
+                        historyRaw = JSON.parse(historyRaw);
+                    }
 
                     if (!Array.isArray(historyRaw) || historyRaw.length === 0) {
-                        throw new Error("抓到了數據但格式不是陣列或為空"); 
+                        throw new Error("解析後的資料為空，或格式不正確 (Not an Array)"); 
                     }
+                    
+                    addLog(`✅ 成功解析 ${historyRaw.length} 筆歷史紀錄`);
 
                     // 萬用取值
                     const getValue = (item, keys) => {
@@ -110,7 +130,7 @@
                         sub: getValue(item, 'Sub_Main') || getValue(item, 'sub')
                     })).filter(i => i.date);
 
-                    if (history.length === 0) throw new Error("解析後無有效歷史紀錄");
+                    if (history.length === 0) throw new Error("過濾後無有效日期資料");
                     
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
                     const latest = history[history.length - 1];
@@ -128,11 +148,16 @@
                     setScannedID(id);
                     setLoading(false);
                     setActiveTab('detail');
+                    addLog("✅ 成功進入檢視模式");
+                    // 自動開啟 Debug 視窗 3秒讓用戶看到結果
+                    setShowDebug(true);
+                    setTimeout(() => setShowDebug(false), 3000);
 
                 } catch (e) { 
                     setLoading(false);
-                    setDebugLog(prev => prev + "\n\n❌ 錯誤: " + e.message + "\n系統將進入【補登模式】");
-                    // 即使失敗也進入錄入，但保留 Log 給用戶看
+                    addLog("❌ 錯誤: " + e.message);
+                    addLog("⚠️ 系統判定為新個體，進入【補登模式】");
+                    setShowDebug(true); // 錯誤時強制顯示 Debug
                     setViewingIndividual(null);
                     setScannedID(id);
                     setActiveTab('entry'); 
@@ -142,13 +167,19 @@
             // --- 掃描器 ---
             useEffect(() => {
                 if (!isScanning) return;
+                addLog("📷 正在啟動相機...");
                 const timer = setTimeout(() => {
                     const html5QrCode = new Html5Qrcode("reader");
                     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
                         let finalId = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop().split('?')[0] : decodedText;
+                        addLog("✅ 掃描成功: " + finalId);
                         setIsScanning(false);
                         html5QrCode.stop().then(() => fetchIndividualData(finalId.toUpperCase()));
-                    }).catch(err => setDebugLog("相機啟動失敗: " + err));
+                    }).catch(err => {
+                        addLog("❌ 相機啟動失敗: " + err);
+                        setIsScanning(false);
+                        setShowDebug(true);
+                    });
                 }, 500);
                 return () => clearTimeout(timer);
             }, [isScanning]);
@@ -157,14 +188,14 @@
             const handleSync = async () => {
                 if (!entry.weight) return alert("請輸入體重");
                 setLoading(true);
+                addLog("🚀 開始同步數據...");
                 try {
-                    // 強制轉換數字，避免 Notion 拒收字串
                     const payload = { 
                         type: 'growth', 
                         license: userId,
                         id: bonaID, 
-                        mode: viewingIndividual ? 'update' : 'new', // 有舊資料=update, 無=new
-                        weight: parseFloat(entry.weight), // ★ 關鍵：強制轉數字
+                        mode: viewingIndividual ? 'update' : 'new', 
+                        weight: parseFloat(entry.weight), 
                         checkDate: entry.checkDate,
                         hatchDate: entry.hatchDate,
                         subMain: entry.subMain,
@@ -172,29 +203,35 @@
                         containerType: entry.containerType,
                         containerVolume: entry.containerVolume,
                         booster: entry.booster,
-                        parentMaleSize: entry.parentMaleSize, // 這些欄位只有 mode=new 時 Make 才會寫入
+                        parentMaleSize: entry.parentMaleSize,
                         parentFemaleSize: entry.parentFemaleSize,
                         generation: entry.generation,
                         timestamp: new Date().toISOString() 
                     };
                     
-                    setDebugLog("正在上傳資料:\n" + JSON.stringify(payload, null, 2));
+                    addLog("Payload: " + JSON.stringify(payload));
 
                     const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (res.ok) {
                         setSaveStatus('success');
+                        addLog("✅ 同步成功！");
                         setTimeout(() => { 
                             setSaveStatus('idle'); setLoading(false); setActiveTab('home'); 
-                            setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); setDebugLog(null);
+                            setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); 
                         }, 2000);
                     } else throw new Error("API Error");
-                } catch (e) { setLoading(false); setDebugLog("上傳失敗: " + e.message); }
+                } catch (e) { setLoading(false); addLog("❌ 上傳失敗: " + e.message); setShowDebug(true); }
             };
 
             // --- 介面渲染 ---
             if (showLoginModal) return (
                 <div className="h-full flex items-center justify-center p-8 bg-black">
                     <div className="w-full max-w-sm text-center space-y-4">
+                        {!logoError ? (
+                            <img src="logo.jpg" className="w-24 h-24 mx-auto rounded-2xl mb-4 border border-white/10" onError={() => setLogoError(true)} />
+                        ) : (
+                            <div className="text-4xl mb-4">🪲</div>
+                        )}
                         <h2 className="text-2xl font-black text-white">Bona Terminal</h2>
                         <input type="text" placeholder="LICENSE KEY" value={userId} onChange={e=>setUserId(e.target.value)} className="text-center font-mono text-[#CA8A04]" />
                         <button onClick={handleLogin} className="w-full bg-[#CA8A04] text-black font-black py-4 rounded-xl">LOGIN</button>
@@ -206,8 +243,21 @@
                 <div className="h-full flex flex-col bg-black text-white relative">
                     <div className="bg-blueprint"></div>
                     
-                    {/* 診斷訊息框 (只在有錯誤或 loading 時顯示) */}
-                    {debugLog && <div className="fixed top-0 left-0 right-0 z-[2000] p-4 bg-black/90"><div className="debug-box">{debugLog}</div><button onClick={()=>setDebugLog(null)} className="text-xs text-white mt-2 border p-1">關閉 Log</button></div>}
+                    {/* 強制診斷按鈕 */}
+                    <button onClick={() => setShowDebug(!showDebug)} className="debug-toggle">🐞</button>
+
+                    {/* 診斷訊息框 */}
+                    {showDebug && (
+                        <div className="debug-overlay">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-[#CA8A04] font-black">SYSTEM LOGS</h3>
+                                <button onClick={()=>setShowDebug(false)} className="bg-zinc-800 px-4 py-2 rounded text-xs">CLOSE</button>
+                            </div>
+                            <div className="debug-content">
+                                {logs.map((log, i) => <div key={i} className="mb-2 border-b border-white/10 pb-1">{log}</div>)}
+                            </div>
+                        </div>
+                    )}
 
                     {loading && <div className="fixed inset-0 z-[1500] bg-black/90 flex items-center justify-center"><div className="text-[#CA8A04] font-black animate-pulse">PROCESSING...</div></div>}
                     
@@ -240,15 +290,12 @@
                             <div className="space-y-6 pb-20">
                                 <button onClick={()=>setActiveTab('home')} className="bg-zinc-900 p-3 rounded-xl mb-4"><i data-lucide="arrow-left"></i></button>
                                 
-                                {/* ID 顯示區 */}
                                 <div className="glass-card p-6 rounded-[2rem]">
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TARGET ID</p>
                                     <h2 className="text-3xl font-black text-white font-mono">{bonaID}</h2>
-                                    {/* 如果是補登模式 (activeTab=entry)，顯示重置按鈕 */}
                                     {activeTab === 'entry' && <button onClick={()=>setSerial(Math.floor(Math.random()*900)+100)} className="mt-2 text-xs text-[#CA8A04] border border-[#CA8A04] px-3 py-1 rounded-full">重置 ID</button>}
                                 </div>
 
-                                {/* 歷史紀錄 (只在檢視模式顯示) */}
                                 {viewingIndividual && (
                                     <div className="glass-card p-6 rounded-[2rem] space-y-4">
                                         <div className="flex justify-between items-end border-b border-white/10 pb-4">
@@ -265,7 +312,6 @@
                                     </div>
                                 )}
 
-                                {/* 錄入/更新表單 */}
                                 <div className="bg-[#18181B] p-6 rounded-[2.5rem] border border-[#CA8A04]/20 space-y-6">
                                     <div className="text-center">
                                         <p className="text-[10px] text-[#CA8A04] font-bold mb-2">INPUT WEIGHT (G)</p>
@@ -277,7 +323,6 @@
                                         <div><label className="text-[9px] text-zinc-500 ml-1">添加劑</label><select value={entry.booster} onChange={e=>setEntry({...entry, booster: e.target.value})}>{["無添加", "10g/10L", "20g/10L", "極限組"].map(o=><option key={o}>{o}</option>)}</select></div>
                                     </div>
 
-                                    {/* 只有新命錄入(或補登)才顯示親代欄位 */}
                                     {!viewingIndividual && (
                                         <div className="space-y-3 pt-4 border-t border-white/10">
                                             <p className="text-[10px] text-zinc-500 font-bold">GENETICS INFO (必填)</p>
@@ -291,6 +336,8 @@
 
                                     <div className="grid grid-cols-2 gap-3 pt-2">
                                         <select value={entry.subMain} onChange={e=>setEntry({...entry, subMain: e.target.value})}>{SUBSTRATES.map(o=><option key={o}>{o}</option>)}</select>
+                                        <select value={entry.subSecondary} onChange={e=>setEntry({...entry, subSecondary: e.target.value})}>{SUBSTRATES.map(o=><option key={o}>{o}</option>)}</select>
+                                        <select value={entry.containerType} onChange={e=>setEntry({...entry, containerType: e.target.value})}>{CONTAINERS.map(o=><option key={o}>{o}</option>)}</select>
                                         <select value={entry.containerVolume} onChange={e=>setEntry({...entry, containerVolume: e.target.value})}>{VOLUMES.map(o=><option key={o}>{o}</option>)}</select>
                                     </div>
 
