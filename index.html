@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BONA BEETLE PRO | v43.0</title>
+    <title>BONA BEETLE PRO | v43.1</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -96,7 +96,7 @@
                  <i class="fa-solid fa-bug text-4xl text-bona-gold hidden absolute"></i>
             </div>
             <h1 class="text-3xl font-bold text-white tracking-widest">BONA<span class="text-bona-gold">PRO</span></h1>
-            <p class="text-bona-muted text-xs mt-2 uppercase tracking-widest">System v43.0</p>
+            <p class="text-bona-muted text-xs mt-2 uppercase tracking-widest">System v43.1</p>
         </div>
         
         <div class="w-full glass-panel p-6 rounded-xl shadow-2xl">
@@ -152,7 +152,7 @@
                 <p class="text-xs text-gray-600 mt-2 text-center">Enter full ID (e.g., D-23-01-001)</p>
             </div>
 
-            <!-- Recent Activity Placeholder (Static for Demo) -->
+            <!-- Recent Activity Placeholder -->
             <div class="mt-4">
                 <h3 class="text-gray-500 text-xs font-bold uppercase mb-3 tracking-widest">System Status</h3>
                 <div class="bg-bona-card p-4 rounded-lg border border-gray-800 flex justify-between items-center">
@@ -261,9 +261,9 @@
         </div>
     </div>
 
-    <!-- EDIT/UPDATE MODAL -->
+    <!-- UPDATE MODAL (Growth Record) -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative">
+        <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white">
                 <i class="fa-solid fa-times text-xl"></i>
             </button>
@@ -306,6 +306,91 @@
         </div>
     </div>
 
+    <!-- NEW ENTRY MODAL -->
+    <div id="modal-new-entry" class="hidden fixed inset-0 z-30 bg-black/90 flex items-start sm:items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative my-8">
+            <button onclick="closeNewEntryModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+            
+            <h3 class="text-xl font-bold text-white mb-6 tracking-wide">NEW <span class="text-bona-gold">ENTRY</span></h3>
+            
+            <form id="form-new-entry" onsubmit="handleNewEntrySubmit(event)" class="space-y-4">
+                
+                <!-- ID & Hatch Date -->
+                <div>
+                    <label class="block text-xs text-bona-gold uppercase mb-1 font-bold">Beetle ID (Required)</label>
+                    <input type="text" id="new-id" class="w-full bg-black border border-gray-700 rounded p-3 text-white font-mono focus:border-bona-gold outline-none uppercase" placeholder="e.g. D-23-01-001" required>
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-500 uppercase mb-1">Hatch Date</label>
+                    <input type="date" id="new-hatch" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm focus:border-bona-gold outline-none">
+                </div>
+
+                <!-- Lineage -->
+                <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-2">
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase mb-1">Sire (父)</label>
+                        <input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none" placeholder="Size/ID">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase mb-1">Dam (母)</label>
+                        <input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none" placeholder="Size/ID">
+                    </div>
+                </div>
+
+                <!-- Initial Stats -->
+                <div>
+                    <label class="block text-xs text-gray-500 uppercase mb-1">Initial Weight (g)</label>
+                    <input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-lg focus:border-bona-gold outline-none" required>
+                </div>
+
+                <!-- Container Info -->
+                <div class="grid grid-cols-2 gap-4">
+                     <div>
+                        <label class="block text-xs text-gray-500 uppercase mb-1">Box Type</label>
+                        <select id="new-box-type" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none">
+                            <option value="Bottle">Bottle (菌瓶)</option>
+                            <option value="Box">Box (飼育箱)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase mb-1">Volume</label>
+                        <select id="new-box-vol" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none">
+                            <option value="800cc">800cc</option>
+                            <option value="1100cc">1100cc</option>
+                            <option value="1400cc">1400cc</option>
+                            <option value="2300cc">2300cc</option>
+                        </select>
+                    </div>
+                </div>
+
+                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase mb-1">Substrate</label>
+                        <select id="new-sub-main" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none">
+                            <option value="Mat-A">Mat-A</option>
+                            <option value="Fungus-K">Fungus-K</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase mb-1">Additive</label>
+                        <select id="new-booster" class="w-full bg-black border border-gray-700 rounded p-3 text-white text-sm outline-none">
+                            <option value="None">None</option>
+                            <option value="Protein+">Protein+</option>
+                            <option value="Chitin+">Chitin+</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110">
+                    Register New Entry
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // ==========================================
@@ -329,6 +414,9 @@
             } else {
                 switchView('login');
             }
+            
+            // Set default date for new entry
+            document.getElementById('new-hatch').valueAsDate = new Date();
         });
 
         // ==========================================
@@ -371,7 +459,7 @@
         }
 
         // ==========================================
-        // DATA OPERATIONS (SEARCH / UPDATE)
+        // DATA OPERATIONS (SEARCH / UPDATE / NEW)
         // ==========================================
         
         // 1. Manual Search Logic
@@ -387,14 +475,12 @@
             showLoading(true);
             
             try {
-                // Construct Payload for Make.com
                 const payload = {
                     type: 'query',
                     id: id,
                     userId: currentUser
                 };
 
-                // Call Webhook
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -405,11 +491,9 @@
                 
                 const data = await response.json();
 
-                // Check if valid data returned
                 if (data && data.id) {
                     populateDetailView(data);
                     switchView('detail');
-                    // Clear search field
                     document.getElementById('search-id').value = '';
                 } else {
                     showNotification('ID Not Found in Database', 'error');
@@ -417,7 +501,6 @@
 
             } catch (error) {
                 console.error('Fetch error:', error);
-                // Fallback for demo/testing if Webhook fails
                 showNotification('Connection Error. Check Webhook.', 'error');
             } finally {
                 showLoading(false);
@@ -426,33 +509,23 @@
 
         // 3. Populate UI
         function populateDetailView(data) {
-            // Header
             document.getElementById('detail-header-id').innerText = data.id || 'UNKNOWN';
-            
-            // Identity
             document.getElementById('d-id').innerText = data.id || '--';
             document.getElementById('d-gen').innerText = data.generation || 'F1';
             document.getElementById('d-hatch').innerText = data.date_hatch || '--';
-            
-            // Stats
             document.getElementById('d-weight').innerText = data.weight || '0';
             document.getElementById('d-check').innerText = data.date_check || new Date().toISOString().split('T')[0];
-            
-            // Lineage
             document.getElementById('d-sire').innerText = data.sire_size || 'N/A';
             document.getElementById('d-dam').innerText = data.dam_size || 'N/A';
-            
-            // Container (NO TEMP/HUMIDITY)
             document.getElementById('d-box-type').innerText = data.box_type || 'Bottle';
             document.getElementById('d-box-vol').innerText = data.box_vol || '1000cc';
             document.getElementById('d-sub-main').innerText = data.sub_main || 'Standard';
             document.getElementById('d-booster').innerText = data.booster || 'None';
 
-            // Hidden field for update
             document.getElementById('update-id').value = data.id;
         }
 
-        // 4. Update Logic
+        // 4. Update Logic (Existing Entry)
         async function handleUpdateSubmit(e) {
             e.preventDefault();
             closeUpdateModal();
@@ -470,7 +543,7 @@
                 userId: currentUser,
                 weight: parseFloat(weight),
                 date_check: new Date().toISOString().split('T')[0],
-                sub_main: sub === 'Keep' ? undefined : sub, // Only send if changed
+                sub_main: sub === 'Keep' ? undefined : sub,
                 booster: booster === 'None' ? undefined : booster
             };
 
@@ -483,7 +556,6 @@
                 
                 if (response.ok) {
                     showNotification('Growth Record Updated', 'success');
-                    // Refresh view with new local data (optimistic UI)
                     document.getElementById('d-weight').innerText = weight;
                     document.getElementById('d-check').innerText = payload.date_check;
                 } else {
@@ -496,13 +568,55 @@
             }
         }
 
+        // 5. New Entry Logic (NEW FEATURE)
+        async function handleNewEntrySubmit(e) {
+            e.preventDefault();
+            closeNewEntryModal();
+            showLoading(true);
+
+            const payload = {
+                type: 'growth',
+                mode: 'new', // Signal to create new item
+                userId: currentUser,
+                id: document.getElementById('new-id').value.toUpperCase(),
+                date_hatch: document.getElementById('new-hatch').value,
+                sire_size: document.getElementById('new-sire').value || 'N/A',
+                dam_size: document.getElementById('new-dam').value || 'N/A',
+                weight: parseFloat(document.getElementById('new-weight').value),
+                date_check: new Date().toISOString().split('T')[0],
+                box_type: document.getElementById('new-box-type').value,
+                box_vol: document.getElementById('new-box-vol').value,
+                sub_main: document.getElementById('new-sub-main').value,
+                booster: document.getElementById('new-booster').value
+            };
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    showNotification('New Beetle Registered!', 'success');
+                    // Immediately fetch and show the new entry
+                    await fetchBeetleData(payload.id);
+                } else {
+                    throw new Error('Create failed');
+                }
+            } catch (error) {
+                showNotification('Registration Failed. ID might exist.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
         // ==========================================
         // QR SCANNER LOGIC
         // ==========================================
         function openScanner() {
             switchView('scanner');
             
-            // Need a slight delay for container to render before attaching scanner
             setTimeout(() => {
                 if (!html5QrcodeScanner) {
                     html5QrcodeScanner = new Html5Qrcode("reader");
@@ -524,18 +638,15 @@
         }
 
         function onScanSuccess(decodedText, decodedResult) {
-            // Stop scanning
             html5QrcodeScanner.stop().then(() => {
                 console.log("Scan success:", decodedText);
                 closeScanner();
-                // Trigger Data Fetch with scanned ID
                 fetchBeetleData(decodedText);
             }).catch(err => console.error("Failed to stop scanner", err));
         }
 
         function onScanFailure(error) {
-            // handle scan failure, usually better to ignore and keep scanning.
-            // console.warn(`Code scan error = ${error}`);
+            // ignore errors
         }
 
         function closeScanner() {
@@ -550,28 +661,32 @@
         }
 
         // ==========================================
-        // UTILITIES
+        // UI UTILITIES
         // ==========================================
         function showDashboard() {
             switchView('dashboard');
         }
 
-        function showNewEntryForm() {
-            // Logic for new entry - Placeholder for this version
-            // Can reuse Update Modal or create new form
-            alert('Redirect to New Entry Form (To be implemented in v44)');
-        }
-
+        // Update Modal
         function openUpdateModal() {
             document.getElementById('modal-update').classList.remove('hidden');
         }
-
         function closeUpdateModal() {
             document.getElementById('modal-update').classList.add('hidden');
         }
-        
         function toggleEditMode() {
             openUpdateModal();
+        }
+
+        // New Entry Modal
+        function showNewEntryForm() {
+            // Reset form
+            document.getElementById('form-new-entry').reset();
+            document.getElementById('new-hatch').valueAsDate = new Date();
+            document.getElementById('modal-new-entry').classList.remove('hidden');
+        }
+        function closeNewEntryModal() {
+            document.getElementById('modal-new-entry').classList.add('hidden');
         }
 
         function showLoading(show) {
@@ -588,21 +703,12 @@
         function showNotification(message, type = 'info') {
             const container = document.getElementById('notification-area');
             const el = document.createElement('div');
-            
             let bgClass = type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-gray-700');
-            
             el.className = `${bgClass} text-white px-4 py-3 rounded shadow-lg text-sm font-bold tracking-wide flex items-center justify-between transform transition-all duration-300 translate-y-[-20px] opacity-0`;
             el.innerHTML = `<span>${message}</span>`;
-            
             container.appendChild(el);
-            
-            // Animate In
-            setTimeout(() => {
-                el.classList.remove('translate-y-[-20px]', 'opacity-0');
-            }, 10);
-
-            // Remove after 3s
-            setTimeout(() => {
+            setTimeout(() => { el.classList.remove('translate-y-[-20px]', 'opacity-0'); }, 10);
+            setTimeout(() => { 
                 el.classList.add('opacity-0');
                 setTimeout(() => el.remove(), 300);
             }, 3000);
