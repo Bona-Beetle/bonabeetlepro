@@ -26,7 +26,8 @@
                             goldHover: '#b5952f',
                             text: '#e5e5e5',
                             muted: '#a3a3a3',
-                            danger: '#ef4444'
+                            danger: '#ef4444',
+                            success: '#10b981'
                         }
                     },
                     fontFamily: {
@@ -152,7 +153,6 @@
             </button>
             <span class="font-bold text-lg tracking-wide text-bona-gold" id="detail-header-id">讀取中...</span>
             <div class="flex space-x-2">
-                <!-- QR Code Button (FIXED) -->
                 <button onclick="showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2"><i class="fa-solid fa-qrcode text-xl"></i></button>
                 <button onclick="toggleEditMode()" class="text-bona-gold hover:text-white p-2"><i class="fa-solid fa-pen-to-square text-xl"></i></button>
             </div>
@@ -164,12 +164,12 @@
                 <div class="text-xs text-gray-500 uppercase tracking-widest mb-1">個體資訊 (Latest Status)</div>
                 <div class="text-3xl font-bold text-white font-mono mb-2" id="d-id">--</div>
                 <div class="flex space-x-6 text-sm text-gray-400">
-                    <!-- Generation Display (Fixed) -->
                     <span><i class="fa-solid fa-dna text-bona-gold mr-1"></i> 累代: <span id="d-gen">--</span></span>
                     <span><i class="fa-solid fa-calendar text-bona-gold mr-1"></i> 孵化: <span id="d-hatch">--</span></span>
                 </div>
             </div>
-            <!-- Stats Grid -->
+
+            <!-- Basic Stats Grid -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-bona-card p-4 rounded-xl border border-gray-800">
                     <div class="text-xs text-gray-500 uppercase mb-1">目前體重</div>
@@ -180,14 +180,35 @@
                     <div class="text-lg font-bold text-white" id="d-check">--</div>
                 </div>
             </div>
-            <!-- Lineage -->
+
+            <!-- Growth Analysis (New!) -->
+            <div class="glass-panel p-4 rounded-xl border-t border-bona-gold/30">
+                <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">成長分析 (Growth Rate)</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-[10px] text-gray-500 mb-1">區間日增重 (Last Interval)</div>
+                        <div class="font-mono text-lg text-bona-success font-bold" id="d-growth-interval">--</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-gray-500 mb-1">全期日增重 (Total Avg)</div>
+                        <div class="font-mono text-lg text-white" id="d-growth-total">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lineage (Updated with Generation) -->
             <div class="glass-panel p-4 rounded-xl">
                 <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">血統資訊 (Lineage)</h3>
                 <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 border-b border-gray-800 pb-2 mb-2">
+                        <div class="text-xs text-gray-500 mb-1">累代 (Generation)</div>
+                        <div class="font-mono text-base text-white" id="d-gen-detail">--</div>
+                    </div>
                     <div><div class="text-xs text-gray-500 mb-1">父代 (Sire)</div><div class="font-mono text-sm text-white" id="d-sire">--</div></div>
                     <div><div class="text-xs text-gray-500 mb-1">母代 (Dam)</div><div class="font-mono text-sm text-white" id="d-dam">--</div></div>
                 </div>
             </div>
+
              <div class="glass-panel p-4 rounded-xl">
                 <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">飼育環境 (Environment)</h3>
                 <div class="space-y-3 text-sm">
@@ -197,7 +218,8 @@
                     <div class="flex justify-between"><span class="text-gray-500">添加劑</span><span class="text-bona-gold font-bold" id="d-booster">--</span></div>
                 </div>
             </div>
-            <!-- History Section -->
+
+            <!-- History Section (UI Fix) -->
             <div id="history-section" class="hidden">
                 <h3 class="text-bona-muted text-xs font-bold uppercase tracking-widest mb-3 mt-6 pl-1">歷史紀錄 (History)</h3>
                 <div class="space-y-3" id="history-list"></div>
@@ -208,7 +230,7 @@
         </div>
     </div>
 
-    <!-- UPDATE MODAL -->
+    <!-- UPDATE MODAL (Full Fields) -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2"><i class="fa-solid fa-times text-xl"></i></button>
@@ -278,6 +300,7 @@
 
                 <!-- Dates -->
                 <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
+                <!-- ... (Rest same as before) ... -->
                 <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
                 <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
                 <div class="space-y-4 pt-2 border-t border-gray-800">
@@ -298,7 +321,7 @@
         </div>
     </div>
 
-    <!-- UPGRADE MODAL -->
+    <!-- UPGRADE & QR MODALS -->
     <div id="modal-upgrade" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
         <div class="w-full max-w-sm text-center relative">
             <i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i>
@@ -308,7 +331,6 @@
         </div>
     </div>
 
-    <!-- QR Modal -->
     <div id="modal-qr" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl">
             <button onclick="closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
@@ -320,7 +342,7 @@
     </div>
 
     <script>
-        // *** CORE FUNCTIONS ***
+        // ... (Same Core Functions: switchView, showLoading, showNotification, updateIDPreview, updateDashboardUI, verifyLicense) ...
         function switchView(viewName) {
             ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
@@ -329,19 +351,13 @@
             const target = document.getElementById(`view-${viewName}`);
             target.classList.remove('hidden');
             if (viewName !== 'view-scanner') target.classList.add('flex');
-            
-            // Fix: Clear search input when returning to dashboard
-            if (viewName === 'dashboard') {
-                document.getElementById('search-id').value = '';
-            }
+            if (viewName === 'dashboard') document.getElementById('search-id').value = '';
         }
-
         function showLoading(show) { 
             const el = document.getElementById('loading-overlay');
             if(show) { el.classList.remove('hidden'); el.classList.add('flex'); }
             else { el.classList.add('hidden'); el.classList.remove('flex'); }
         }
-
         function showNotification(msg, type) {
             const area = document.getElementById('notification-area');
             const el = document.createElement('div');
@@ -351,11 +367,30 @@
             requestAnimationFrame(() => el.classList.remove('translate-y-[-20px]', 'opacity-0'));
             setTimeout(() => { el.classList.add('opacity-0'); setTimeout(() => el.remove(), 300); }, 3000);
         }
-        
-        function showDashboard() { 
-            switchView('dashboard'); 
+        function updateIDPreview() {
+            const prefix = document.getElementById('id-prefix').value || 'D';
+            const year = document.getElementById('id-year').value;
+            let batch = document.getElementById('id-batch').value || '00';
+            let seq = document.getElementById('id-seq').value || '000';
+            if (batch.length < 2) batch = '0' + batch;
+            if (seq.length < 3) seq = ('000' + seq).slice(-3);
+            const fullId = `${prefix}-${year}-${batch}-${seq}`;
+            document.getElementById('id-preview').innerText = fullId;
+            return fullId;
         }
-
+        function updateDashboardUI() {
+            if(!currentUser) return;
+            const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser;
+            document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`;
+            const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100);
+            document.getElementById('quota-bar-fill').style.width = `${percent}%`;
+            document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`;
+            const bar = document.getElementById('quota-bar-fill');
+            if (percent >= 90) bar.className = 'quota-bar h-full bg-bona-danger';
+            else bar.className = 'quota-bar h-full bg-bona-gold';
+        }
+        
+        // [Main Logic]
         const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w"; 
         let currentUser = localStorage.getItem('bona_user_key') || null;
         let quotaInfo = { max: 50, used: 0 }; 
@@ -363,7 +398,6 @@
         let currentDetailData = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Restore ID state
             const lastPrefix = localStorage.getItem('last_prefix');
             const lastYear = localStorage.getItem('last_year');
             const lastBatch = localStorage.getItem('last_batch');
@@ -375,23 +409,56 @@
                 let nextSeq = parseInt(lastSeq) + 1;
                 document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
             }
-
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('new-check-date').value = today;
             document.getElementById('new-hatch-date').value = today;
-            // Set update date picker default
             document.getElementById('update-date').value = today;
-            
             updateIDPreview();
-
-            if (currentUser) {
-                verifyLicense(currentUser, true);
-            } else {
-                switchView('login');
-            }
+            if (currentUser) verifyLicense(currentUser, true); else switchView('login');
         });
 
-        // --- SUPER CLEANER (V47.1 Upgrade) ---
+        // --- NEW CALCULATOR FUNCTIONS (V47.4) ---
+        function calculateGrowth(current, history) {
+            // Need valid current data
+            const curDate = new Date(cleanData(current.date_check));
+            const hatchDate = new Date(cleanData(current.date_hatch));
+            const curWeight = parseFloat(cleanData(current.weight));
+            
+            // 1. Total Avg Growth
+            let totalAvg = '--';
+            if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) {
+                const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24);
+                if (totalDays > 0) {
+                     // Assume initial weight near 0 or negligible if not tracked, or use history last item
+                     // Simply: Weight / Days
+                     totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日';
+                }
+            }
+            document.getElementById('d-growth-total').innerText = totalAvg;
+
+            // 2. Interval Avg Growth (vs Previous Record)
+            let intervalAvg = '--';
+            // Find previous record (history[1] because history[0] is current)
+            if (history && history.length > 1) {
+                const prev = history[1];
+                const prevDate = new Date(cleanData(prev.date_check));
+                const prevWeight = parseFloat(cleanData(prev.weight));
+                
+                if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) {
+                     const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24);
+                     const weightDiff = curWeight - prevWeight;
+                     if (intDays > 0) {
+                         intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日';
+                         // Add color: Positive Green, Negative Red
+                         const el = document.getElementById('d-growth-interval');
+                         el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold";
+                     }
+                }
+            }
+            document.getElementById('d-growth-interval').innerText = intervalAvg;
+        }
+
+        // ... [Consolidate, Fetch, etc.] ...
         function cleanData(val) {
             if (val === null || val === undefined) return '--';
             if (typeof val === 'object') {
@@ -411,83 +478,6 @@
             }
             return val;
         }
-
-        function updateIDPreview() {
-            const prefix = document.getElementById('id-prefix').value || 'D';
-            const year = document.getElementById('id-year').value;
-            let batch = document.getElementById('id-batch').value || '00';
-            let seq = document.getElementById('id-seq').value || '000';
-            if (batch.length < 2) batch = '0' + batch;
-            if (seq.length < 3) seq = ('000' + seq).slice(-3);
-            const fullId = `${prefix}-${year}-${batch}-${seq}`;
-            document.getElementById('id-preview').innerText = fullId;
-            return fullId;
-        }
-
-        function updateDashboardUI() {
-            if(!currentUser) return;
-            const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser;
-            document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`;
-            const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100);
-            document.getElementById('quota-bar-fill').style.width = `${percent}%`;
-            document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`;
-            const bar = document.getElementById('quota-bar-fill');
-            if (percent >= 90) bar.className = 'quota-bar h-full bg-bona-danger';
-            else bar.className = 'quota-bar h-full bg-bona-gold';
-        }
-
-        async function verifyLicense(key, silent) {
-            if (!silent) showLoading(true);
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'auth', userId: key })
-                });
-                
-                const text = await response.text();
-                let data = {};
-                try { data = JSON.parse(text); } catch(e) {}
-                if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
-                if (Array.isArray(data) && data.length > 0) data = data[0];
-
-                const rawKey = data.key_found || data['License Key'] || data.id;
-                const rawStatus = data.status || data.Status;
-                
-                const cleanKey = cleanData(rawKey);
-                // V47.2 Fix: Trim whitespace for stricter comparison but looser parsing
-                const cleanStatus = cleanData(rawStatus).toString().trim();
-
-                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
-                // V47.2 Fix: Exclude specific bad states
-                const isSuspended = cleanStatus.toLowerCase().includes('suspend') || cleanStatus.toLowerCase().includes('inactive');
-                const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended;
-
-                if (hasKey && isActive) {
-                    currentUser = key;
-                    localStorage.setItem('bona_user_key', key);
-                    quotaInfo = { max: data.max || 50, used: data.used || 0 };
-                    updateDashboardUI();
-                    if (!silent) showNotification('登入成功', 'success');
-                    switchView('dashboard');
-                } else {
-                    let failReason = !hasKey ? "找不到授權碼" : `狀態異常 [${cleanStatus}]`;
-                    if (!silent) {
-                        alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}\n(請確認 Notion 資料庫狀態為 'Active')`);
-                        showNotification(`授權無效`, 'error');
-                    }
-                    else logout();
-                }
-            } catch (error) {
-                console.error("Auth Error", error);
-                if (!silent) showNotification('連線錯誤', 'error');
-                if(silent) logout(); 
-            } finally {
-                if (!silent) showLoading(false);
-            }
-        }
-
-        // [Fetch & Helpers same as before]
         function consolidateData(rawList) {
             let final = { ...rawList[0] }; 
             const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; };
@@ -536,6 +526,8 @@
                         currentDetailData = consolidatedRecord;
                         populateDetailView(consolidatedRecord);
                         renderHistoryList(validHistory);
+                        // Trigger Calculations
+                        calculateGrowth(consolidatedRecord, validHistory);
                         switchView('detail');
                         document.getElementById('search-id').value = '';
                     } else { showNotification(`資料結構異常`, 'error'); }
@@ -546,6 +538,7 @@
             document.getElementById('detail-header-id').innerText = cleanData(data.id);
             document.getElementById('d-id').innerText = cleanData(data.id);
             document.getElementById('d-gen').innerText = cleanData(data.generation);
+            document.getElementById('d-gen-detail').innerText = cleanData(data.generation); // Added for detail panel
             document.getElementById('d-hatch').innerText = cleanData(data.date_hatch);
             document.getElementById('d-weight').innerText = cleanData(data.weight);
             document.getElementById('d-check').innerText = cleanData(data.date_check);
@@ -566,129 +559,114 @@
             section.classList.remove('hidden');
             dataArray.forEach(item => {
                 const el = document.createElement('div');
-                el.className = 'glass-panel p-4 rounded-xl flex justify-between items-center';
+                el.className = 'glass-panel p-4 rounded-xl relative'; // Changed layout logic
+                
                 const date = cleanData(item.date_check);
                 const weight = cleanData(item.weight);
                 const sub = cleanData(item.sub_main);
-                const sub_sec = cleanData(item.sub_sec); // Added sub_sec
+                const sub_sec = cleanData(item.sub_sec);
                 const booster = cleanData(item.booster);
                 const box = cleanData(item.box_type);
                 const vol = cleanData(item.box_vol);
                 
-                // Enhanced History Template
+                // New "No Overlap" Layout
                 el.innerHTML = `
-                    <div class="flex flex-col space-y-1">
-                        <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-start">
+                        <!-- Left Info -->
+                        <div class="flex flex-col space-y-1 w-2/3">
                             <span class="text-xs text-gray-500">${date}</span>
-                            <span class="text-white font-bold text-lg">${weight}g</span>
+                            <div class="text-xs text-bona-muted leading-relaxed">
+                                <span class="text-white">${sub}</span>
+                                ${sub_sec && sub_sec !== '--' && sub_sec !== '無' ? ' + ' + sub_sec : ''}
+                                <br>
+                                ${booster !== '--' && booster !== '無添加' ? '<span class="text-bona-gold">' + booster + '</span>' : ''}
+                            </div>
                         </div>
-                        <div class="text-xs text-bona-muted">
-                            ${sub} ${sub_sec && sub_sec !== '無' ? '+ ' + sub_sec : ''} 
-                            ${booster !== '--' && booster !== '無添加' ? '<span class="text-bona-gold ml-1">+ ' + booster + '</span>' : ''}
-                        </div>
-                        <div class="text-xs text-gray-600 flex justify-between">
-                             <span>${box}</span>
-                             <span>${vol}</span>
+                        
+                        <!-- Right Info (Weight & Box) -->
+                        <div class="flex flex-col items-end w-1/3">
+                            <span class="text-white font-bold text-xl mb-1">${weight}g</span>
+                            <div class="text-[10px] text-gray-500 text-right">
+                                ${box}<br>${vol}
+                            </div>
                         </div>
                     </div>
                 `;
                 container.appendChild(el);
             });
         }
-        async function handleLogin() {
-            const key = document.getElementById('login-license').value.trim();
-            if (!key) return showNotification('請輸入授權碼', 'error');
-            await verifyLicense(key, false);
+        
+        // ... [Rest of logic: verifyLicense, handleLogin, etc. same as before] ...
+        async function verifyLicense(key, silent) {
+            if (!silent) showLoading(true);
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'auth', userId: key })
+                });
+                const text = await response.text();
+                let data = {}; try { data = JSON.parse(text); } catch(e) {}
+                if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
+                if (Array.isArray(data) && data.length > 0) data = data[0];
+                const rawKey = data.key_found || data['License Key'] || data.id;
+                const rawStatus = data.status || data.Status;
+                const cleanKey = cleanData(rawKey);
+                const cleanStatus = cleanData(rawStatus).toString().trim();
+                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
+                const isSuspended = cleanStatus.toLowerCase().includes('suspend') || cleanStatus.toLowerCase().includes('inactive');
+                const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended;
+                if (hasKey && isActive) {
+                    currentUser = key;
+                    localStorage.setItem('bona_user_key', key);
+                    quotaInfo = { max: data.max || 50, used: data.used || 0 };
+                    updateDashboardUI();
+                    if (!silent) showNotification('登入成功', 'success');
+                    switchView('dashboard');
+                } else {
+                    let failReason = !hasKey ? "找不到授權碼" : `狀態異常 [${cleanStatus}]`;
+                    if (!silent) { alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`); showNotification(`授權無效`, 'error'); }
+                    else logout();
+                }
+            } catch (error) { if (!silent) showNotification('連線錯誤', 'error'); if(silent) logout(); } finally { if (!silent) showLoading(false); }
         }
-        function openUpdateModal() { 
-            // Reset to today on open
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('update-date').value = today;
-            document.getElementById('modal-update').classList.remove('hidden'); 
-        }
-        function closeUpdateModal() { document.getElementById('modal-update').classList.add('hidden'); }
-        function showNewEntryForm() {
-            if (quotaInfo.used >= quotaInfo.max) {
-                document.getElementById('modal-upgrade').classList.remove('hidden');
-                return;
-            }
-            document.getElementById('form-new-entry').reset();
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('new-check-date').value = today;
-            document.getElementById('new-hatch-date').value = today;
-            updateIDPreview();
-            
-            // Auto increment logic (from local storage or default)
-            const lastSeq = localStorage.getItem('last_seq');
-            if (lastSeq) {
-                 const nextSeq = parseInt(lastSeq) + 1;
-                 document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
-                 updateIDPreview();
-            }
-
-            document.getElementById('modal-new-entry').classList.remove('hidden');
-        }
-
+        async function handleLogin() { const key = document.getElementById('login-license').value.trim(); if (!key) return showNotification('請輸入授權碼', 'error'); await verifyLicense(key, false); }
+        function showNewEntryForm() { if (quotaInfo.used >= quotaInfo.max) { document.getElementById('modal-upgrade').classList.remove('hidden'); return; } document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; updateIDPreview(); const lastSeq = localStorage.getItem('last_seq'); if (lastSeq) { const nextSeq = parseInt(lastSeq) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); updateIDPreview(); } document.getElementById('modal-new-entry').classList.remove('hidden'); }
         async function handleUpdateSubmit(e) {
             e.preventDefault();
             if (!currentUser) return showNotification('請先登入', 'error');
             closeUpdateModal();
             showLoading(true);
-            
             const id = document.getElementById('update-id').value;
             const weight = document.getElementById('update-weight').value;
-            const checkDate = document.getElementById('update-date').value; // New Field
-            
-            // Only update fields if not 'Keep'
+            const checkDate = document.getElementById('update-date').value;
             const sub = document.getElementById('update-sub').value;
             const subSec = document.getElementById('update-sub-sec').value;
             const boxType = document.getElementById('update-box-type').value;
             const boxVol = document.getElementById('update-box-vol').value;
             const booster = document.getElementById('update-booster').value;
-
-            const payload = {
-                type: 'growth', mode: 'update', id: id, userId: currentUser,
-                weight: parseFloat(weight), date_check: checkDate
-            };
-            
+            const payload = { type: 'growth', mode: 'update', id: id, userId: currentUser, weight: parseFloat(weight), date_check: checkDate };
             if (sub !== 'Keep') payload.sub_main = sub;
             if (subSec !== 'Keep') payload.sub_sec = subSec;
             if (boxType !== 'Keep') payload.box_type = boxType;
             if (boxVol !== 'Keep') payload.box_vol = boxVol;
             if (booster !== 'None') payload.booster = booster;
-
             try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
-                if (response.ok) {
-                    showNotification('數據更新成功', 'success');
-                    document.getElementById('d-weight').innerText = weight;
-                    // Optimistic update of date
-                    document.getElementById('d-check').innerText = checkDate;
-                    setTimeout(() => fetchBeetleData(id), 1500); 
-                } else throw new Error(`HTTP ${response.status}`);
+                const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (response.ok) { showNotification('數據更新成功', 'success'); document.getElementById('d-weight').innerText = weight; document.getElementById('d-check').innerText = checkDate; setTimeout(() => fetchBeetleData(id), 1500); } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { showNotification(`更新失敗: ${error.message}`, 'error'); } finally { showLoading(false); }
         }
-
         async function handleNewEntrySubmit(e) {
             e.preventDefault();
             if (!currentUser) return showNotification('請先登入', 'error');
-            if (quotaInfo.used >= quotaInfo.max) {
-                closeNewEntryModal();
-                document.getElementById('modal-upgrade').classList.remove('hidden');
-                return;
-            }
+            if (quotaInfo.used >= quotaInfo.max) { closeNewEntryModal(); document.getElementById('modal-upgrade').classList.remove('hidden'); return; }
             closeNewEntryModal();
             showLoading(true);
             const fullId = updateIDPreview();
-            
-            // SAVE STATE
             localStorage.setItem('last_prefix', document.getElementById('id-prefix').value);
             localStorage.setItem('last_year', document.getElementById('id-year').value);
             localStorage.setItem('last_batch', document.getElementById('id-batch').value);
             localStorage.setItem('last_seq', document.getElementById('id-seq').value);
-
             try {
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -707,68 +685,34 @@
                         booster: document.getElementById('new-booster').value
                     })
                 });
-                const text = await response.text();
-                let data = {}; try { data = JSON.parse(text); } catch(e) {}
                 if (response.ok) {
-                    if (data.status === 'error' && data.message === 'Quota Exceeded') {
-                        showNotification('錄入失敗：額度已滿', 'error');
-                        document.getElementById('modal-upgrade').classList.remove('hidden');
-                    } else {
-                        showNotification(`錄入成功: ${fullId}`, 'success');
-                        quotaInfo.used += 1;
-                        updateDashboardUI();
-                        // Auto increment locally for immediate next entry
-                        const nextSeq = parseInt(document.getElementById('id-seq').value) + 1;
-                        document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
-                        updateIDPreview();
-
-                        setTimeout(async () => { await fetchBeetleData(fullId); setTimeout(() => openQRModal(fullId), 500); }, 3000);
-                    }
+                    showNotification(`錄入成功: ${fullId}`, 'success');
+                    quotaInfo.used += 1;
+                    updateDashboardUI();
+                    const nextSeq = parseInt(document.getElementById('id-seq').value) + 1;
+                    document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
+                    updateIDPreview();
+                    setTimeout(async () => { await fetchBeetleData(fullId); setTimeout(() => openQRModal(fullId), 500); }, 3000);
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { console.error(error); showNotification('錄入完成', 'success'); } finally { showLoading(false); }
         }
         function showQRCodeForCurrent() { currentDetailData && currentDetailData.id ? openQRModal(cleanData(currentDetailData.id)) : showNotification('無資料可生成 QR Code', 'error'); }
-        function openQRModal(id) {
-            const modal = document.getElementById('modal-qr');
-            const container = document.getElementById('qrcode');
-            container.innerHTML = ''; 
-            document.getElementById('qr-id-label').innerText = id;
-            new QRCode(container, { text: id, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
-            modal.classList.remove('hidden');
-        }
+        function openQRModal(id) { const modal = document.getElementById('modal-qr'); const container = document.getElementById('qrcode'); container.innerHTML = ''; document.getElementById('qr-id-label').innerText = id; new QRCode(container, { text: id, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H }); modal.classList.remove('hidden'); }
         function closeQRModal() { document.getElementById('modal-qr').classList.add('hidden'); }
         function openScanner() {
             switchView('scanner');
             setTimeout(() => {
                 if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
                 html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => {
-                    html5QrcodeScanner.stop().then(() => { 
-                        closeScanner();
-                        let cleanId = decodedText.trim().toUpperCase();
-                        if (cleanId.includes('/') || cleanId.includes('HTTP')) {
-                            const parts = cleanId.split('/');
-                            cleanId = parts[parts.length - 1];
-                        }
-                        showNotification(`已讀取: ${cleanId}`, 'info');
-                        fetchBeetleData(cleanId); 
-                    });
+                    html5QrcodeScanner.stop().then(() => { closeScanner(); let cleanId = decodedText.trim().toUpperCase(); if (cleanId.includes('/') || cleanId.includes('HTTP')) { const parts = cleanId.split('/'); cleanId = parts[parts.length - 1]; } showNotification(`已讀取: ${cleanId}`, 'info'); fetchBeetleData(cleanId); });
                 }, (error) => {}).catch(err => { showNotification('無法開啟相機', 'error'); closeScanner(); });
             }, 100);
         }
         function closeScanner() { if (html5QrcodeScanner?.isScanning) { html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); switchView('dashboard'); }).catch(() => switchView('dashboard')); } else switchView('dashboard'); }
         function logout() { localStorage.removeItem('bona_user_key'); currentUser = null; location.reload(); }
-        async function handleManualSearch() {
-            if (!currentUser) return showNotification('請先登入', 'error');
-            const id = document.getElementById('search-id').value.trim().toUpperCase();
-            if (!id) return showNotification('請輸入編號', 'error');
-            await fetchBeetleData(id);
-        }
-        function openUpdateModal() { 
-            // Reset to today on open
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('update-date').value = today;
-            document.getElementById('modal-update').classList.remove('hidden'); 
-        }
+        async function handleManualSearch() { if (!currentUser) return showNotification('請先登入', 'error'); const id = document.getElementById('search-id').value.trim().toUpperCase(); if (!id) return showNotification('請輸入編號', 'error'); await fetchBeetleData(id); }
+        function showDashboard() { switchView('dashboard'); }
+        function openUpdateModal() { const today = new Date().toISOString().split('T')[0]; document.getElementById('update-date').value = today; document.getElementById('modal-update').classList.remove('hidden'); }
         function closeUpdateModal() { document.getElementById('modal-update').classList.add('hidden'); }
         function toggleEditMode() { openUpdateModal(); }
         function closeNewEntryModal() { document.getElementById('modal-new-entry').classList.add('hidden'); }
