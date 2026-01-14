@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bona PRO | 商務營利終端</title>
+    <title>Bona PRO | 純淨商務終端</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="logo.png">
@@ -16,14 +16,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;700;900&display=swap');
         :root { --b-gold: #CA8A04; --b-black: #050505; --b-zinc: #18181B; }
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--b-black); font-family: 'Noto Sans TC', sans-serif; color: #E2E8F0; width: 100vw; overscroll-behavior-y: none; }
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--b-black); font-family: 'Noto Sans TC', sans-serif; color: #E2E8F0; width: 100vw; max-width: 100vw; overscroll-behavior-y: none; }
         #root { height: 100%; width: 100%; overflow: hidden; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .bg-blueprint { position: fixed; inset: 0; z-index: -1; background-size: 30px 30px; background-image: linear-gradient(to right, rgba(202, 138, 4, 0.015) 1px, transparent 1px), linear-gradient(to bottom, rgba(202, 138, 4, 0.015) 1px, transparent 1px); pointer-events: none; }
         .main-scroll-container { flex: 1; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 200px; width: 100%; }
         .main-scroll-container::-webkit-scrollbar { display: none; }
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-        input[type="date"], input[type="text"], textarea, select { color-scheme: dark; background: #18181B; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; font-size: 14px; width: 100%; outline: none; }
+        input[type="date"], input[type="text"], textarea, select { color-scheme: dark; background: #000; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 14px; font-size: 14px; width: 100%; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        input:focus, textarea:focus, select:focus { border-color: var(--b-gold); box-shadow: 0 0 10px rgba(202, 138, 4, 0.2); }
+        input:disabled { opacity: 0.5; color: #71717a; border-color: rgba(255,255,255,0.05); background: #111; }
         #reader { width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid rgba(202, 138, 4, 0.3); background: #000; min-height: 300px; }
         .glass-card { background: rgba(24, 24, 27, 0.9); backdrop-blur: 20px; border: 1px solid rgba(255, 255, 255, 0.08); }
         .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -36,27 +38,27 @@
     <div id="root" class="h-full"></div>
     <script type="text/babel">
         const { useState, useMemo, useEffect, useRef } = React;
-        const Icon = ({ name, size = 20, color = "currentColor" }) => <i key={name} data-lucide={name} style={{ width: size, height: size, color }}></i>;
+        const Icon = ({ name, size = 20, color = "currentColor", className = "" }) => {
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
+            return <i key={name} data-lucide={name} style={{ width: size, height: size, color }} className={className}></i>;
+        };
 
         const App = () => {
-            // --- 狀態定義 ---
             const [hasStarted, setHasStarted] = useState(false);
             const [activeTab, setActiveTab] = useState('home');
             const [loading, setLoading] = useState(false);
             const [saveStatus, setSaveStatus] = useState('idle');
-            const [showEnvModal, setShowEnvModal] = useState(false);
-            const [showPrintModal, setShowPrintModal] = useState(false); 
-            const [showUpgradeModal, setShowUpgradeModal] = useState(false); // Hotfix: Added missing state
+            const [showPrintModal, setShowPrintModal] = useState(false);
+            const [showUpgradeModal, setShowUpgradeModal] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
             const [errorMsg, setErrorMsg] = useState('');
-            
             const [userId, setUserId] = useState(() => localStorage.getItem('bona_pro_license') || '');
             const [showLoginModal, setShowLoginModal] = useState(!localStorage.getItem('bona_pro_license'));
             const [usageStats, setUsageStats] = useState({ current: 42, limit: 50, plan: 'BASIC' });
+            
             const [viewingIndividual, setViewingIndividual] = useState(null);
 
-            const scannerRef = useRef(null);
-
+            // --- 核心 Webhook ---
             const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w";
             const logoUrl = "logo.jpg";
 
@@ -64,7 +66,6 @@
             const CONTAINERS = ["布丁杯", "塑膠方盒", "塑膠圓筒", "日規雙孔罐", "日規單孔罐", "貝殼箱", "祈星方盒", "整理箱", "其他"];
             const VOLUMES = ["100-150ml", "500ml", "700-800ml", "1000ml", "1400-1500ml", "2200-2300ml", "3200-3500ml", "4L", "6L", "10L"];
 
-            const [env, setEnv] = useState({ temp: '22.5', emergency: '環境穩定', date: new Date().toISOString().split('T')[0] });
             const [prefix, setPrefix] = useState('PGK');
             const [serial, setSerial] = useState(Math.floor(Math.random() * 900) + 100);
             const [scannedID, setScannedID] = useState(null);
@@ -83,6 +84,8 @@
             const handleLogin = () => {
                 if(userId.trim()) {
                     localStorage.setItem('bona_pro_license', userId.trim());
+                    if (userId.toUpperCase().startsWith('VIP')) { setUsageStats({ current: 42, limit: 500, plan: 'PRO' }); } 
+                    else { setUsageStats({ current: 42, limit: 50, plan: 'BASIC' }); }
                     setShowLoginModal(false);
                 }
             };
@@ -96,17 +99,18 @@
                 const w2 = parseFloat(latest.weight) || 0;
                 const dateDiff = Math.max((new Date(latest.date) - new Date(previous.date)) / (1000 * 60 * 60 * 24), 1);
                 const totalDays = Math.max((new Date(latest.date) - new Date(first.date)) / (1000 * 60 * 60 * 24), 1);
-                return { intervalGain: (weightDiff / dateDiff).toFixed(2), totalAvgGain: (totalWeight / totalDays).toFixed(2), daysSinceLast: Math.floor(dateDiff) };
+                return { intervalGain: (weightDiff / dateDiff).toFixed(2), totalAvgGain: (w2 / totalDays).toFixed(2), daysSinceLast: Math.floor(dateDiff) };
             };
 
             const parseNotionData = (rawData) => {
                 if (!rawData) return [];
                 let dataToProcess = rawData;
                 if (typeof rawData === 'string') { try { dataToProcess = JSON.parse(rawData); } catch (e) { return []; } }
-                if (dataToProcess && typeof dataToProcess === 'object') {
+                if (dataToProcess && !Array.isArray(dataToProcess) && typeof dataToProcess === 'object') {
                     if (dataToProcess.raw) dataToProcess = dataToProcess.raw;
+                    else if (dataToProcess.results) dataToProcess = dataToProcess.results;
                     else if (dataToProcess.growthHistory) dataToProcess = dataToProcess.growthHistory;
-                    else if (!Array.isArray(dataToProcess)) dataToProcess = [dataToProcess];
+                    else dataToProcess = [dataToProcess];
                 }
                 if (!Array.isArray(dataToProcess)) return [];
 
@@ -144,16 +148,16 @@
                         body: JSON.stringify({ type: 'query', id, license: userId })
                     });
                     
-                    if (!res.ok) throw new Error("Server Error");
+                    if (!res.ok) throw new Error("Connection Error");
                     const responseBody = await res.json();
                     
                     let history = parseNotionData(responseBody.raw || responseBody);
-                    if (history.length === 0) throw new Error("No Data");
+                    if (history.length === 0) throw new Error("No Data Found");
 
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
                     const latest = history[history.length - 1];
                     const first = history[0];
-
+                    
                     const meta = { 
                         sire: first.sire || '-', dam: first.dam || '-', 
                         gen: first.gen || '-', hatch: first.hatch || entry.hatchDate 
@@ -166,84 +170,82 @@
                         growthHistory: history, metrics: calculateMetrics(history)
                     });
                     
-                    // 掃描成功後，手動關閉掃描器 (確保資源釋放)
-                    stopScanner();
+                    // 預填更新表單
+                    setEntry(prev => ({ ...prev, subMain: latest.sub !== '無紀錄' ? latest.sub : prev.subMain }));
 
-                    setScannedID(id); 
-                    setLoading(false);
-                    setActiveTab('detail');
+                    setScannedID(id); setLoading(false); setActiveTab('detail');
 
                 } catch (e) { 
                     setLoading(false); 
-                    // 查無資料，判定為新個體或資料庫為空 -> 轉入錄入模式
-                    console.log("Entering New Entry Mode:", e);
-                    stopScanner();
-                    setViewingIndividual(null); setScannedID(id); setActiveTab('entry'); 
+                    console.log("Entering Recovery Mode:", e);
+                    setViewingIndividual(null); 
+                    setScannedID(id); 
+                    setActiveTab('entry'); 
                 }
             };
 
-            // --- 掃描器啟動邏輯 ---
-            const startScanner = () => {
-                setIsScanning(true);
-                // 延遲啟動以等待 DOM
-                setTimeout(() => {
-                    if (!document.getElementById("reader")) return;
-                    
-                    const html5QrCode = new Html5Qrcode("reader");
-                    scannerRef.current = html5QrCode;
-                    
-                    html5QrCode.start(
-                        { facingMode: "environment" },
-                        { fps: 10, qrbox: 250 },
-                        (decodedText) => {
-                            let finalId = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop().split('?')[0] : decodedText;
-                            // 掃描成功：先不關閉 isScanning 避免 UI 閃爍，直接 fetch
-                            fetchIndividualData(finalId.toUpperCase());
+            useEffect(() => {
+                let html5QrCode;
+                if (isScanning) {
+                    const timer = setTimeout(() => {
+                        const element = document.getElementById("reader");
+                        if (element) {
+                            html5QrCode = new Html5Qrcode("reader");
+                            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
+                                let finalId = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop().split('?')[0] : decodedText;
+                                setIsScanning(false);
+                                html5QrCode.stop().then(() => fetchIndividualData(finalId.toUpperCase()));
+                            }).catch(err => console.error("Scanner failed", err));
                         }
-                    ).catch(err => {
-                        console.error("Camera failed", err);
-                        setIsScanning(false);
-                        setErrorMsg("相機啟動失敗");
-                        setSaveStatus('error');
-                    });
-                }, 300);
-            };
-
-            const stopScanner = () => {
-                if (scannerRef.current) {
-                    scannerRef.current.stop().then(() => {
-                        scannerRef.current.clear();
-                        setIsScanning(false);
-                    }).catch(err => {
-                        console.log("Stop failed", err);
-                        setIsScanning(false);
-                    });
-                } else {
-                    setIsScanning(false);
+                    }, 300);
+                    return () => clearTimeout(timer);
                 }
-            };
+                return () => { if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop(); };
+            }, [isScanning]);
 
+            // --- 核心同步邏輯 (重要修復) ---
             const handleSync = async (submissionType = 'growth') => {
-                if (submissionType === 'growth' && !entry.weight) return;
+                if (submissionType === 'growth') {
+                    if (!entry.weight) return;
+                    if (!viewingIndividual && usageStats.current >= usageStats.limit) { setShowUpgradeModal(true); return; }
+                }
                 setLoading(true);
                 try {
+                    // mode: 如果有 viewingIndividual (代表檢視中)，則為 update，否則為 new (新命/補登)
+                    const currentMode = viewingIndividual ? 'update' : 'new';
+                    
                     const payload = { 
-                        type: submissionType, license: userId, ...entry, 
-                        id: bonaID, mode: viewingIndividual ? 'update' : 'new',
-                        env, timestamp: new Date().toISOString() 
+                        type: 'growth',  // 強制固定為 growth
+                        license: userId,
+                        id: bonaID, 
+                        mode: currentMode,
+                        // 強制轉數字與字串，防止格式錯誤
+                        weight: parseFloat(entry.weight), 
+                        checkDate: entry.checkDate,
+                        hatchDate: entry.hatchDate,
+                        subMain: entry.subMain,
+                        subSecondary: entry.subSecondary,
+                        containerType: entry.containerType,
+                        containerVolume: entry.containerVolume,
+                        booster: entry.booster,
+                        parentMaleSize: entry.parentMaleSize,
+                        parentFemaleSize: entry.parentFemaleSize,
+                        generation: entry.generation,
+                        timestamp: new Date().toISOString() 
                     };
+                    
                     const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (res.ok) {
                         setSaveStatus('success');
+                        if (!viewingIndividual) setUsageStats(prev => ({ ...prev, current: prev.current + 1 }));
                         setTimeout(() => { 
-                            setSaveStatus('idle'); setLoading(false); setActiveTab('home'); setShowEnvModal(false); 
+                            setSaveStatus('idle'); setLoading(false); setActiveTab('home'); 
                             setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); 
                         }, 2000);
                     } else throw new Error("API Error");
                 } catch (e) { setLoading(false); setSaveStatus('error'); setErrorMsg("同步失敗"); }
             };
 
-            // --- UI 組件 ---
             const PrintTagModal = () => (
                 <div className="fixed inset-0 z-[2500] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-slide-up">
                     <div className="bg-white text-black p-8 rounded-2xl w-full max-w-[300px] text-center shadow-2xl space-y-4">
@@ -252,32 +254,43 @@
                         <div className="space-y-1"><div className="text-3xl font-black font-mono tracking-tighter">{bonaID}</div><div className="text-[9px] font-bold text-gray-400 uppercase italic">Smart Tracking Asset</div></div>
                         <div className="grid grid-cols-2 gap-2 text-[8px] font-bold border-t border-gray-100 pt-3 text-left"><div><span className="text-gray-400 uppercase">SUB:</span> {entry.subMain}</div><div><span className="text-gray-400 uppercase">HATCH:</span> {entry.hatchDate}</div></div>
                     </div>
-                    <p className="text-white/40 text-[10px] mt-8 font-bold uppercase tracking-widest italic text-center">請截圖保存後使用標籤機列印</p>
                     <button onClick={() => setShowPrintModal(false)} className="mt-8 bg-[#CA8A04] text-black px-12 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">關閉預覽</button>
                 </div>
             );
 
-            // IntegratedProfileView 與 UI 部分
+            const UpgradeModal = () => (
+                <div className="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-slide-up">
+                    <div className="glass-card p-8 rounded-[2.5rem] w-full max-w-sm text-center border border-[#CA8A04]/50 shadow-[0_0_50px_rgba(202,138,4,0.2)]">
+                        <div className="w-16 h-16 bg-[#CA8A04]/20 rounded-full flex items-center justify-center mx-auto mb-4"><Icon name="lock" size={32} color="#CA8A04" /></div>
+                        <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Limit Reached</h3>
+                        <div className="space-y-3"><button onClick={() => setShowUpgradeModal(false)} className="w-full bg-[#CA8A04] text-black font-black py-4 rounded-2xl text-xs uppercase tracking-widest active:scale-95 transition-all">關閉</button></div>
+                    </div>
+                </div>
+            );
+
             const IntegratedProfileView = ({ data }) => (
                 <div className="space-y-8 animate-slide-up pb-48 px-6 pt-12 relative">
                     <header className="flex items-center justify-between"><button onClick={() => { setActiveTab('home'); setViewingIndividual(null); setScannedID(null); }} className="p-3 bg-zinc-900 rounded-2xl text-zinc-400 active:scale-90 transition-all"><Icon name="arrow-left" size={20} /></button><div className="text-right"><h2 className="text-2xl font-black italic text-white font-mono leading-none">{data.id}</h2><p className="text-[10px] text-[#CA8A04] font-black uppercase tracking-widest mt-1">Live Intelligence Active</p></div></header>
                     <div className="bg-zinc-900/80 backdrop-blur-xl p-7 rounded-[3rem] border border-[#CA8A04]/30 relative overflow-hidden shadow-2xl">
-                        <div className="relative z-10 flex justify-between items-end mb-6">
-                            <div><p className="text-[9px] text-zinc-500 font-black uppercase italic mb-1 leading-none">Mass Index</p><div className="text-6xl font-black text-white italic font-mono leading-none">{data.currentWeight}<span className="text-xs ml-1 text-[#CA8A04]">G</span></div></div>
-                            <div className="text-right"><div className="flex items-center justify-end gap-1 text-green-500 mb-1"><Icon name="trending-up" size={12} /><span className="text-[9px] font-black uppercase italic tracking-tighter">Daily Gain</span></div><div className="text-2xl font-black text-white font-mono italic leading-none">+{data.metrics.intervalGain}<span className="text-[10px] ml-1 uppercase text-zinc-600">g/d</span></div></div>
-                        </div>
+                        <div className="relative z-10 flex justify-between items-end mb-6"><div><p className="text-[9px] text-zinc-500 font-black uppercase italic mb-1 leading-none">Mass Index</p><div className="text-6xl font-black text-white italic font-mono leading-none">{data.currentWeight}<span className="text-xs ml-1 text-[#CA8A04]">G</span></div></div><div className="text-right"><div className="flex items-center justify-end gap-1 text-green-500 mb-1"><Icon name="trending-up" size={12} /><span className="text-[9px] font-black uppercase italic tracking-tighter">Daily Gain</span></div><div className="text-2xl font-black text-white font-mono italic leading-none">+{data.metrics.intervalGain}<span className="text-[10px] ml-1 uppercase text-zinc-600">g/d</span></div></div></div>
                         <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6 text-[10px] font-black uppercase italic text-zinc-500"><div>總平均: <span className="text-zinc-200 font-mono">+{data.metrics.totalAvgGain}</span></div><div className="text-right">天數: <span className="text-zinc-200 font-mono">{data.metrics.daysSinceLast}</span></div></div>
                     </div>
+                    {/* 血統 (唯讀) */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♂</label><p className="text-xs font-black text-white italic font-mono">{data.parentMaleSize}</p></div>
                         <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♀</label><p className="text-xs font-black text-white italic font-mono">{data.parentFemaleSize}</p></div>
                     </div>
+                    {/* 歷史紀錄 */}
                     <div className="bg-zinc-900/50 rounded-[2.5rem] border border-white/5 overflow-hidden">
                         <div className="bg-zinc-800/30 px-6 py-4 border-b border-white/5 flex items-center gap-2"><Icon name="history" size={16} color="#CA8A04" /><span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">Timeline</span></div>
                         <div className="p-4 space-y-4">{data.growthHistory.slice().reverse().map((h, i) => (<div key={i} className="flex justify-between items-center text-[10px] font-mono border-b border-white/5 pb-2 last:border-0"><span className="text-zinc-500">{h.date}</span><span className="text-zinc-200 font-bold">{h.weight}g</span><span className="text-[#CA8A04]/50">{h.sub}</span></div>))}</div>
                     </div>
                     <div className="bg-[#18181B] p-8 rounded-[3.5rem] border border-[#CA8A04]/20 space-y-8 shadow-2xl">
-                        <div className="text-center"><p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono">Log Today's Weight</p><input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-8xl font-black text-white text-center outline-none w-full italic tabular-nums placeholder:text-zinc-900" /></div>
+                        <div className="text-center">
+                            <p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono">Log Today's Weight</p>
+                            {/* 修復：體重欄位防止爆版 */}
+                            <input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-40 mx-auto italic tabular-nums placeholder:text-zinc-900 border-b border-transparent focus:border-[#CA8A04] transition-all" />
+                        </div>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-3"><input type="date" value={entry.checkDate} onChange={e=>setEntry({...entry, checkDate: e.target.value})} /><select value={entry.booster} onChange={e=>setEntry({...entry, booster: e.target.value})} className="font-bold">{["無添加", "10g/10L", "20g/10L", "極限組"].map(opt => <option key={opt}>{opt}</option>)}</select></div>
                             <div className="grid grid-cols-2 gap-3"><select value={entry.subMain} onChange={e=>setEntry({...entry, subMain: e.target.value})} className="font-bold">{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select><select value={entry.subSecondary} onChange={e=>setEntry({...entry, subSecondary: e.target.value})} className="font-bold italic"><option value="無">無</option>{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select></div>
@@ -291,8 +304,7 @@
             if (showLoginModal) return (
                 <div className="h-screen w-full flex items-center justify-center p-8 bg-black z-[3000]">
                     <div className="glass-card p-10 rounded-[3rem] w-full max-w-sm space-y-8 text-center animate-slide-up border border-[#CA8A04]/30">
-                        <div className="space-y-4"><img src={logoUrl} className="w-20 h-20 mx-auto rounded-2xl border border-white/5 shadow-2xl" /><h2 className="text-2xl font-black italic text-white uppercase tracking-tighter">Bona Terminal</h2><div className="h-1 w-12 bg-[#CA8A04] mx-auto rounded-full"></div></div>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] leading-relaxed">請輸入您的產品授權碼<br/>以啟動雲端連線</p>
+                        <div className="space-y-4"><img src={logoUrl} className="w-20 h-20 mx-auto rounded-2xl border border-white/5 shadow-2xl" /><h2 className="text-2xl font-black italic text-white uppercase tracking-tighter">Bona Terminal</h2></div>
                         <input type="text" placeholder="ENTER LICENSE KEY" value={userId} onChange={e=>setUserId(e.target.value)} className="text-center font-mono text-[#CA8A04] text-lg uppercase tracking-widest placeholder:text-zinc-800" />
                         <button onClick={handleLogin} className="w-full bg-[#CA8A04] text-black font-black py-5 rounded-2xl text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-[0_10px_30px_rgba(202,138,4,0.3)]">激活系統授權</button>
                     </div>
@@ -302,7 +314,7 @@
             if (!hasStarted) return (
                 <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-black animate-slide-up">
                     <img src={logoUrl} className="w-24 h-24 border-2 border-[#CA8A04] p-1 bg-black rounded-3xl shadow-2xl z-10" />
-                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V37.1</p></div>
+                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V38.0</p></div>
                     <button onClick={() => setHasStarted(true)} className="w-full max-w-xs bg-gradient-to-r from-yellow-700 via-[#CA8A04] to-yellow-700 text-black font-black py-6 rounded-3xl text-[11px] uppercase tracking-[0.3em] shadow-2xl mt-12 active:scale-95 transition-all">連線終端</button>
                 </div>
             );
@@ -312,7 +324,7 @@
                     <div className="bg-blueprint"></div>
                     {(loading || saveStatus !== 'idle') && (
                         <div className="fixed inset-0 bg-black/95 z-[1500] flex flex-col items-center justify-center backdrop-blur-md">
-                            {loading && <div className="flex flex-col items-center relative h-64 w-64"><div className="scan-line"></div><div className="w-32 h-32 border-2 border-[#CA8A04]/20 rounded-3xl flex items-center justify-center relative"><Icon name="search" size={48} color="#CA8A04" className="animate-pulse" /></div><p className="text-[10px] text-[#CA8A04] font-mono tracking-[0.5em] animate-pulse uppercase mt-8 italic text-center">Identifying_Genetic_Profile...</p></div>}
+                            {loading && <div className="flex flex-col items-center relative h-64 w-64"><div className="scan-line"></div><div className="w-32 h-32 border-2 border-[#CA8A04]/20 rounded-3xl flex items-center justify-center relative"><Icon name="search" size={48} color="#CA8A04" className="animate-pulse" /></div><p className="text-[10px] text-[#CA8A04] font-mono tracking-[0.5em] animate-pulse uppercase mt-8 italic text-center">Processing...</p></div>}
                             {saveStatus === 'success' && <div className="flex flex-col items-center animate-slide-up"><Icon name="shield-check" size={80} color="#22C55E" className="mb-6 animate-bounce" /><h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Sync Successful</h3></div>}
                             {saveStatus === 'error' && <div className="flex flex-col items-center animate-slide-up"><Icon name="alert-triangle" size={80} color="#EF4444" className="mb-6" /><h3 className="text-xl font-black text-white italic uppercase tracking-tighter">{errorMsg || "Error Occurred"}</h3><button onClick={()=>setSaveStatus('idle')} className="mt-4 bg-zinc-800 text-white px-6 py-2 rounded-lg text-xs">Close</button></div>}
                         </div>
@@ -323,40 +335,17 @@
                         <div className="fixed inset-0 z-[1100] bg-black flex flex-col items-center justify-center p-6">
                             <h3 className="text-xl font-black text-[#CA8A04] italic uppercase mb-4 font-mono tracking-[0.2em]">Scanner_Active</h3>
                             <div id="reader"></div>
-                            <button onClick={stopScanner} className="mt-8 bg-zinc-900 text-zinc-500 px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/5 active:scale-95 transition-all">取消掃描</button>
+                            <button onClick={() => setIsScanning(false)} className="mt-8 bg-zinc-900 text-zinc-500 px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/5 active:scale-95 transition-all">取消掃描</button>
                         </div>
                     )}
                     
-                    {/* 環境監控視窗 */}
-                    {showEnvModal && (
-                        <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-8 animate-slide-up">
-                            <div className="bg-zinc-900 border border-white/10 w-full max-w-xs rounded-[3rem] p-8 space-y-6 shadow-2xl">
-                                <div className="text-center space-y-1"><h3 className="text-xl font-black text-white italic uppercase font-mono tracking-tighter">Env_Monitor</h3><p className="text-[9px] text-zinc-500 font-mono tracking-widest uppercase">Room Status Update</p></div>
-                                <div className="space-y-4">
-                                    <div className="space-y-1"><label className="text-[9px] text-zinc-500 font-black uppercase italic ml-1">日期</label><input type="date" value={env.date} onChange={e=>setEnv({...env, date: e.target.value})} className="w-full bg-black border border-white/5 p-4 rounded-2xl text-xs font-black text-white outline-none" /></div>
-                                    <div className="space-y-1"><label className="text-[9px] text-zinc-500 font-black uppercase italic ml-1">室溫 (°C)</label><input type="number" step="0.1" value={env.temp} onChange={e=>setEnv({...env, temp: e.target.value})} className="w-full bg-black border border-white/5 p-4 rounded-2xl text-2xl font-black text-white text-center outline-none font-mono" /></div>
-                                    <div className="space-y-1"><label className="text-[9px] text-zinc-500 font-black uppercase italic ml-1">備註</label><textarea value={env.emergency} onChange={e=>setEnv({...env, emergency: e.target.value})} rows="2" placeholder="輸入環境說明..." className="w-full bg-black border border-white/5 p-4 rounded-2xl text-xs text-white outline-none" /></div>
-                                </div>
-                                <div className="flex flex-col gap-3"><button onClick={() => handleSync('environment')} className="bg-[#CA8A04] text-black font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">同步環境數據</button><button onClick={() => setShowEnvModal(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">取消</button></div>
-                            </div>
-                        </div>
-                    )}
-
                     <main className="main-scroll-container pt-12 px-6 relative z-10 scroll-smooth">
                         {activeTab === 'home' && (
                             <div className="space-y-6 animate-slide-up">
                                 <header className="flex justify-between items-center"><div className="space-y-1"><p className="text-[10px] text-green-500 font-black uppercase italic tracking-widest leading-none">● Client: {userId}</p><h2 className="text-2xl font-black text-white italic tracking-tighter uppercase font-mono leading-none">Bona_Terminal</h2></div><button onClick={() => { localStorage.removeItem('bona_pro_license'); window.location.reload(); }} className="text-zinc-800 active:scale-90 transition-all"><Icon name="log-out" size={18} /></button></header>
-                                <div className="grid grid-cols-5 gap-4" onClick={() => setShowEnvModal(true)}>
-                                    <div className="col-span-2 bg-zinc-900/80 p-5 rounded-[2.2rem] border border-white/5 space-y-1 active:scale-95 transition-transform shadow-xl"><Icon name="thermometer" size={16} color="#3B82F6" /><p className="text-[9px] text-gray-600 font-bold uppercase pt-1 leading-none">Temp</p><div className="text-2xl font-black text-white italic font-mono leading-none">{env.temp}°C</div></div>
-                                    <div className="col-span-3 bg-zinc-900/80 p-5 rounded-[2.2rem] border border-[#CA8A04]/20 space-y-1 active:scale-95 transition-transform shadow-xl"><div className="flex justify-between items-center"><Icon name="bell" size={16} color="#CA8A04" /><span className="text-[8px] font-mono text-zinc-700 uppercase">{env.date}</span></div><p className="text-[9px] text-gray-600 font-bold uppercase pt-1 leading-none">System Status</p><div className="text-xs font-bold text-white italic line-clamp-1 opacity-80">{env.emergency}</div></div>
-                                </div>
-                                <div className="bg-gradient-to-br from-[#CA8A04] to-yellow-800 p-8 rounded-[3.5rem] text-black shadow-2xl relative overflow-hidden active:scale-95 transition-transform" onClick={startScanner}>
-                                    <div className="relative z-10 space-y-4"><Icon name="scan-qr-code" size={32} /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">掃描識別 / Scan</h3><p className="text-[10px] font-bold opacity-80 uppercase tracking-widest max-w-[180px]">掃描標籤即可檢索個體生長履歷，並快速錄入數據。</p><div className="bg-black text-white px-8 py-3 rounded-full text-[9px] font-black uppercase tracking-widest inline-block italic shadow-xl">啟動相機掃描</div></div>
-                                    <Icon name="history" size={180} className="absolute -bottom-10 -right-10 opacity-10 rotate-12" />
-                                </div>
-                                <div className="bg-zinc-900/80 border border-white/5 p-8 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden active:scale-[0.98] transition-all" onClick={() => { setActiveTab('entry'); setScannedID(null); setViewingIndividual(null); }}>
-                                    <div className="relative z-10 space-y-4"><Icon name="sparkles" size={32} color="#CA8A04" /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">新命錄入 / New</h3><p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">建立新生命數據，填寫遺傳資訊並產生 QR 標籤。</p><div className="bg-zinc-800 text-zinc-400 px-8 py-2.5 rounded-full text-[8px] font-black uppercase tracking-widest inline-block italic border border-white/5 shadow-inner">Register_Hatch</div></div>
-                                </div>
+                                <div className="bg-zinc-900/50 rounded-2xl p-4 border border-white/5 flex items-center justify-between"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-[#CA8A04]"><Icon name="database" size={18} /></div><div><p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Storage Used</p><p className="text-xs font-black text-white font-mono">{usageStats.current} / {usageStats.limit} <span className="text-[8px] text-zinc-600 ml-1">ENTRIES</span></p></div></div><div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden"><div className="h-full bg-[#CA8A04]" style={{ width: `${(usageStats.current/usageStats.limit)*100}%` }}></div></div></div>
+                                <div className="bg-gradient-to-br from-[#CA8A04] to-yellow-800 p-8 rounded-[3.5rem] text-black shadow-2xl relative overflow-hidden active:scale-95 transition-transform" onClick={() => setIsScanning(true)}><div className="relative z-10 space-y-4"><Icon name="scan-qr-code" size={32} /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">掃描識別 / Scan</h3><p className="text-[10px] font-bold opacity-80 uppercase tracking-widest max-w-[180px]">掃描標籤即可檢索個體生長履歷，並快速錄入數據。</p><div className="bg-black text-white px-8 py-3 rounded-full text-[9px] font-black uppercase tracking-widest inline-block italic shadow-xl">啟動相機掃描</div></div><Icon name="history" size={180} className="absolute -bottom-10 -right-10 opacity-10 rotate-12" /></div>
+                                <div className="bg-zinc-900/80 border border-white/5 p-8 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden active:scale-[0.98] transition-all" onClick={() => { if(usageStats.current >= usageStats.limit) { setShowUpgradeModal(true); return; } setActiveTab('entry'); setScannedID(null); setViewingIndividual(null); }}><div className="relative z-10 space-y-4"><Icon name="sparkles" size={32} color="#CA8A04" /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">新命錄入 / New</h3><p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">建立新生命數據，填寫遺傳資訊並產生 QR 標籤。</p><div className="bg-zinc-800 text-zinc-400 px-8 py-2.5 rounded-full text-[8px] font-black uppercase tracking-widest inline-block italic border border-white/5 shadow-inner">Register_Hatch</div></div></div>
                             </div>
                         )}
                         {activeTab === 'detail' && viewingIndividual && <IntegratedProfileView data={viewingIndividual} />}
@@ -366,11 +355,12 @@
                                 <div className="glass-card p-7 rounded-[2.8rem] border border-white/5 space-y-6 shadow-xl mx-2">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-1"><label className="text-[8px] text-zinc-500 font-black uppercase italic tracking-widest">System Master ID</label><div className="text-3xl font-black text-white italic tracking-tighter font-mono">{bonaID}</div><button onClick={() => setShowPrintModal(true)} className="flex items-center gap-2 text-[10px] text-[#CA8A04] font-black uppercase mt-3 py-2 px-4 bg-[#CA8A04]/10 rounded-full border border-[#CA8A04]/20 active:scale-95 transition-all"><Icon name="printer" size={14} /> 產生列印標籤</button></div>
-                                        <button onClick={() => setSerial(Math.floor(Math.random() * 900) + 100)} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
+                                        {/* 重置按鈕：讓掃描進入的補登模式也可以刷新 ID */}
+                                        <button onClick={() => { setScannedID(null); setSerial(Math.floor(Math.random() * 900) + 100); }} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6">
                                         <div className="space-y-1"><label className="text-[9px] text-[#CA8A04] font-black uppercase italic ml-1">★ 挖出日期</label><input type="date" value={entry.hatchDate} onChange={e=>setEntry({...entry, hatchDate: e.target.value})} className="gold-glow" /></div>
-                                        <div className="space-y-1"><label className="text-[9px] text-zinc-500 font-black uppercase italic ml-1">物種前綴</label><input value={prefix} onChange={e=>setPrefix(e.target.value.toUpperCase())} className="font-black text-[#CA8A04]" /></div>
+                                        <div className="space-y-1"><label className="text-[9px] text-zinc-500 font-black uppercase italic ml-1">物種前綴</label><input value={prefix} onChange={e=>setPrefix(e.target.value.toUpperCase())} disabled={!!scannedID} className={`font-black ${scannedID ? 'text-zinc-500' : 'text-[#CA8A04]'}`} /></div>
                                     </div>
                                 </div>
                                 <div className="glass-card p-7 rounded-[2.8rem] border border-[#CA8A04]/20 space-y-5 shadow-xl mx-2">
@@ -382,7 +372,7 @@
                                     <div className="space-y-1.5"><label className="text-[9px] text-zinc-500 font-black uppercase ml-1">Generation (累代)</label><input type="text" placeholder="e.g. CBF1" value={entry.generation} onChange={e=>setEntry({...entry, generation: e.target.value})} /></div>
                                 </div>
                                 <div className="bg-zinc-900 p-8 rounded-[3.5rem] border border-[#CA8A04]/10 space-y-8 shadow-2xl mx-2">
-                                    <div className="text-center"><p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono animate-pulse">Initial Weight (G)</p><input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-8xl font-black text-white text-center outline-none w-full italic tabular-nums placeholder:text-zinc-900" /></div>
+                                    <div className="text-center"><p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono animate-pulse">Initial Weight (G)</p><input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-40 mx-auto italic tabular-nums placeholder:text-zinc-900 border-b border-transparent focus:border-[#CA8A04] transition-all" /></div>
                                     <div className="space-y-5">
                                         <div className="grid grid-cols-2 gap-3"><select value={entry.subMain} onChange={e=>setEntry({...entry, subMain: e.target.value})} className="font-bold">{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select><select value={entry.subSecondary} onChange={e=>setEntry({...entry, subSecondary: e.target.value})} className="font-bold italic"><option value="無">無</option>{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select></div>
                                         <div className="grid grid-cols-2 gap-3"><select value={entry.containerType} onChange={e=>setEntry({...entry, containerType: e.target.value})} className="font-bold">{CONTAINERS.map(opt => <option key={opt}>{opt}</option>)}</select><select value={entry.containerVolume} onChange={e=>setEntry({...entry, containerVolume: e.target.value})} className="font-bold">{VOLUMES.map(opt => <option key={opt}>{opt}</option>)}</select></div>
@@ -404,6 +394,7 @@
                 </div>
             );
         };
+
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
