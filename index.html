@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bona Beetle PRO | 純淨商務終端</title>
+    <title>Bona Beetle PRO | 商務營利終端</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="logo.jpg">
-    
     <!-- 核心資源庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -15,61 +14,22 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;700;900&display=swap');
         :root { --b-gold: #CA8A04; --b-black: #050505; --b-zinc: #18181B; }
-        
-        /* 核心滾動修正：禁止水平滾動 */
-        html, body { 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; /* 禁止 body 捲動，交由內部容器處理 */
-            background-color: var(--b-black); 
-            font-family: 'Noto Sans TC', sans-serif; 
-            color: #E2E8F0; 
-            width: 100vw;
-            max-width: 100vw;
-            overscroll-behavior-y: none; /* 防止 iOS 彈性滾動效果影響佈局 */
-        }
-        
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--b-black); font-family: 'Noto Sans TC', sans-serif; color: #E2E8F0; width: 100vw; max-width: 100vw; overscroll-behavior-y: none; }
         #root { height: 100%; width: 100%; overflow: hidden; }
-
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .gold-glow { filter: drop-shadow(0 0 15px rgba(202, 138, 4, 0.4)); }
-        
-        /* 背景優化，確保不溢出 */
-        .bg-blueprint { 
-            position: fixed; 
-            inset: 0; 
-            z-index: -1; 
-            background-size: 30px 30px; 
-            background-image: linear-gradient(to right, rgba(202, 138, 4, 0.015) 1px, transparent 1px), linear-gradient(to bottom, rgba(202, 138, 4, 0.015) 1px, transparent 1px);
-            pointer-events: none;
-        }
-
-        /* 主滾動容器：僅允許垂直滾動 */
-        .main-scroll-container { 
-            flex: 1; 
-            height: 100%;
-            overflow-y: auto; 
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; 
-            padding-bottom: 180px; /* 底部補償，避免被導覽列遮擋 */
-            width: 100%;
-        }
+        .bg-blueprint { position: fixed; inset: 0; z-index: -1; background-size: 30px 30px; background-image: linear-gradient(to right, rgba(202, 138, 4, 0.015) 1px, transparent 1px), linear-gradient(to bottom, rgba(202, 138, 4, 0.015) 1px, transparent 1px); pointer-events: none; }
+        .main-scroll-container { flex: 1; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 180px; width: 100%; }
         .main-scroll-container::-webkit-scrollbar { display: none; }
-
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
         input[type="date"], input[type="text"], textarea, select { color-scheme: dark; background: #000; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 14px; font-size: 14px; width: 100%; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         input:focus, textarea:focus, select:focus { border-color: var(--b-gold); box-shadow: 0 0 10px rgba(202, 138, 4, 0.2); }
-        
-        /* 掃描器樣式 */
         #reader { width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid rgba(202, 138, 4, 0.3); background: #000; min-height: 300px; }
         .glass-card { background: rgba(24, 24, 27, 0.85); backdrop-blur: 20px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes scanGlow { 0% { top: -10%; } 100% { top: 110%; } }
         .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--b-gold); box-shadow: 0 0 20px var(--b-gold); animation: scanGlow 2s infinite linear; z-index: 20; }
@@ -79,7 +39,6 @@
     <div id="root" class="h-full"></div>
     <script type="text/babel">
         const { useState, useMemo, useEffect, useRef } = React;
-
         const Icon = ({ name, size = 20, color = "currentColor", className = "" }) => {
             useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
             return <i key={name} data-lucide={name} style={{ width: size, height: size, color }} className={className}></i>;
@@ -94,16 +53,11 @@
             const [showUpgradeModal, setShowUpgradeModal] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
             const [errorMsg, setErrorMsg] = useState('');
-            
-            // 用戶授權與用量狀態
             const [userId, setUserId] = useState(() => localStorage.getItem('bona_pro_license') || '');
             const [showLoginModal, setShowLoginModal] = useState(!localStorage.getItem('bona_pro_license'));
-            // 模擬從後端獲取的用量數據
             const [usageStats, setUsageStats] = useState({ current: 42, limit: 50, plan: 'BASIC' });
-
             const [viewingIndividual, setViewingIndividual] = useState(null);
 
-            // --- 核心 Webhook ---
             const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w";
             const logoUrl = "logo.jpg";
 
@@ -114,9 +68,8 @@
             const [prefix, setPrefix] = useState('PGK');
             const [serial, setSerial] = useState(Math.floor(Math.random() * 900) + 100);
             const [scannedID, setScannedID] = useState(null);
-            const year = useMemo(() => new Date().getFullYear().toString().slice(-2), []);
             
-            const bonaID = useMemo(() => scannedID || `${prefix.toUpperCase()}-${year}-${serial}`, [prefix, year, serial, scannedID]);
+            const bonaID = useMemo(() => scannedID || `${prefix.toUpperCase()}-${new Date().getFullYear().toString().slice(-2)}-${serial}`, [prefix, serial, scannedID]);
             const qrUrl = useMemo(() => `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://bona-beetle.io/scan/${bonaID}?u=${userId}`)}&bgcolor=ffffff&color=000000&margin=1`, [bonaID, userId]);
 
             const [entry, setEntry] = useState({
@@ -127,15 +80,11 @@
                 parentMaleSize: '', parentFemaleSize: '', generation: 'CBF1'
             });
 
-            // 模擬後端驗證：根據 Key 決定方案
             const handleLogin = () => {
                 if(userId.trim()) {
                     localStorage.setItem('bona_pro_license', userId.trim());
-                    if (userId.toUpperCase().startsWith('VIP')) {
-                        setUsageStats({ current: 42, limit: 500, plan: 'PRO' });
-                    } else {
-                        setUsageStats({ current: 42, limit: 50, plan: 'BASIC' });
-                    }
+                    if (userId.toUpperCase().startsWith('VIP')) { setUsageStats({ current: 42, limit: 500, plan: 'PRO' }); } 
+                    else { setUsageStats({ current: 42, limit: 50, plan: 'BASIC' }); }
                     setShowLoginModal(false);
                 }
             };
@@ -145,42 +94,57 @@
                 const latest = history[history.length - 1];
                 const previous = history[history.length - 2];
                 const first = history[0];
-                const weightDiff = parseFloat(latest.weight) - (previous.weight === 'L1' ? 0 : parseFloat(previous.weight));
-                const dateDiff = (new Date(latest.date) - new Date(previous.date)) / (1000 * 60 * 60 * 24);
-                const totalWeight = parseFloat(latest.weight);
-                const totalDays = (new Date(latest.date) - new Date(first.date)) / (1000 * 60 * 60 * 24);
-                return { intervalGain: (weightDiff / (dateDiff || 1)).toFixed(2), totalAvgGain: (totalWeight / (totalDays || 1)).toFixed(2), daysSinceLast: Math.floor(dateDiff) };
+                const w1 = parseFloat(previous.weight) || 0;
+                const w2 = parseFloat(latest.weight) || 0;
+                const d1 = new Date(previous.date);
+                const d2 = new Date(latest.date);
+                const d0 = new Date(first.date);
+                const dateDiff = Math.max((d2 - d1) / (1000 * 60 * 60 * 24), 1);
+                const totalDays = Math.max((d2 - d0) / (1000 * 60 * 60 * 24), 1);
+                return { 
+                    intervalGain: ((w2 - w1) / dateDiff).toFixed(2), 
+                    totalAvgGain: (w2 / totalDays).toFixed(2), 
+                    daysSinceLast: Math.floor(dateDiff) 
+                };
             };
 
+            // --- 強化版解析器：解決 Make 回傳各式 JSON 的相容問題 ---
             const parseNotionData = (rawData) => {
                 if (!rawData) return [];
                 let dataToProcess = rawData;
+                
+                // 如果 Make 回傳的是字串，嘗試解析
                 if (typeof rawData === 'string') {
                     try { dataToProcess = JSON.parse(rawData); } catch (e) { return []; }
                 }
+                
+                // 如果回傳的是單一物件而不是陣列，包成陣列
+                if (!Array.isArray(dataToProcess) && typeof dataToProcess === 'object') {
+                    dataToProcess = [dataToProcess];
+                }
+
                 if (!Array.isArray(dataToProcess)) return [];
 
                 const getValue = (item, keys) => {
-                    const paths = [
-                        `properties value.${keys}.number`, `properties value.${keys}.select.name`, `properties value.${keys}.rich_text.0.text.content`, `properties value.${keys}.date.start`, `properties value.${keys}.title.0.text.content`,
-                        `properties.${keys}.number`, `properties.${keys}.select.name`, `properties.${keys}.rich_text.0.text.content`, `properties.${keys}.date.start`, `properties.${keys}.title.0.text.content`
-                    ];
-                    for (let path of paths) {
-                        const val = path.split('.').reduce((acc, part) => acc && acc[part], item);
-                        if (val !== undefined && val !== null) return val;
-                    }
-                    return null;
+                    // 優先順序：直接 Key -> Notion 屬性 Key -> 陣列形式
+                    const val = item[keys] || 
+                                item[`properties value`]?.[keys]?.number || 
+                                item[`properties value`]?.[keys]?.select?.name || 
+                                item[`properties value`]?.[keys]?.rich_text?.[0]?.text?.content || 
+                                item[`properties value`]?.[keys]?.date?.start ||
+                                item[`properties value`]?.[keys]?.title?.[0]?.text?.content;
+                    return val;
                 };
 
                 return dataToProcess.map(item => ({
-                    date: getValue(item, 'Date_Check'),
-                    weight: getValue(item, 'Weight') || 0,
-                    sub: getValue(item, 'Sub_Main') || '無紀錄',
-                    box: getValue(item, 'Box_Vol') || '無紀錄',
-                    sire: getValue(item, 'Sire_Size') || '-',
-                    dam: getValue(item, 'Dam_Size') || '-',
-                    gen: getValue(item, 'Generation') || '-',
-                    hatch: getValue(item, 'Date_Hatch')
+                    date: getValue(item, 'Date_Check') || getValue(item, 'date'),
+                    weight: getValue(item, 'Weight') || getValue(item, 'weight') || 0,
+                    sub: getValue(item, 'Sub_Main') || getValue(item, 'sub') || '無紀錄',
+                    box: getValue(item, 'Box_Vol') || getValue(item, 'box') || '無紀錄',
+                    sire: getValue(item, 'Sire_Size') || getValue(item, 'sire') || '-',
+                    dam: getValue(item, 'Dam_Size') || getValue(item, 'dam') || '-',
+                    gen: getValue(item, 'Generation') || getValue(item, 'gen') || '-',
+                    hatch: getValue(item, 'Date_Hatch') || getValue(item, 'hatch')
                 })).filter(i => i.date);
             };
 
@@ -192,42 +156,49 @@
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ type: 'query', id, license: userId })
                     });
+                    
                     if (!res.ok) throw new Error("Server Error");
                     const responseBody = await res.json();
                     
                     let history = [];
-                    let meta = { sire: '-', dam: '-', gen: '-', hatch: entry.hatchDate };
-
-                    if (responseBody.raw) {
+                    // 優先檢查 growthHistory，其次檢查 raw
+                    if (responseBody.growthHistory && Array.isArray(responseBody.growthHistory)) {
+                        history = parseNotionData(responseBody.growthHistory);
+                    } else if (responseBody.raw) {
                         history = parseNotionData(responseBody.raw);
-                        if (history.length > 0) {
-                            meta.sire = history[0].sire;
-                            meta.dam = history[0].dam;
-                            meta.gen = history[0].gen;
-                            meta.hatch = history[0].hatch || entry.hatchDate;
-                        }
-                    } else if (responseBody.growthHistory) {
-                        history = responseBody.growthHistory;
-                    } else {
-                        throw new Error("No Data");
                     }
 
-                    if (history.length === 0) throw new Error("Empty History");
+                    if (history.length === 0) throw new Error("No Data Found");
 
+                    // 排序與提取血統
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
-                    const metrics = calculateMetrics(history);
+                    const latest = history[history.length - 1];
+                    const first = history[0];
                     
+                    // 優先使用 Webhook 回傳的 Meta，若無則從歷史紀錄第一筆抓
+                    const meta = { 
+                        sire: responseBody.parentMaleSize || first.sire || '-', 
+                        dam: responseBody.parentFemaleSize || first.dam || '-', 
+                        gen: responseBody.generation || first.gen || '-', 
+                        hatch: responseBody.hatchDate || first.hatch || entry.hatchDate 
+                    };
+
                     setViewingIndividual({
-                        id: id, species: "PGK", lineage: "Bona Lineage", 
+                        id: id, species: responseBody.species || "PGK", lineage: responseBody.lineage || "Bona Lineage",
                         generation: meta.gen, parentMaleSize: meta.sire, parentFemaleSize: meta.dam, 
-                        hatchDate: meta.hatch, currentWeight: history[history.length-1].weight,
-                        growthHistory: history, metrics: metrics
+                        hatchDate: meta.hatch, currentWeight: latest.weight,
+                        growthHistory: history, metrics: calculateMetrics(history)
                     });
+                    
                     setScannedID(id); setLoading(false); setActiveTab('detail');
 
                 } catch (e) { 
                     setLoading(false); 
-                    setViewingIndividual(null); setScannedID(id); setActiveTab('entry'); 
+                    // 查無資料，判定為新個體或資料庫為空 -> 轉入錄入模式
+                    console.log("Entering Entry Mode:", e);
+                    setViewingIndividual(null); 
+                    setScannedID(id); 
+                    setActiveTab('entry'); 
                 }
             };
 
@@ -238,11 +209,15 @@
                         const element = document.getElementById("reader");
                         if (element) {
                             html5QrCode = new Html5Qrcode("reader");
-                            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
-                                let finalId = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop().split('?')[0] : decodedText;
-                                setIsScanning(false);
-                                html5QrCode.stop().then(() => fetchIndividualData(finalId.toUpperCase()));
-                            }).catch(err => console.error("Scanner failed", err));
+                            html5QrCode.start(
+                                { facingMode: "environment" },
+                                { fps: 10, qrbox: 250 },
+                                (decodedText) => {
+                                    let finalId = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop().split('?')[0] : decodedText;
+                                    setIsScanning(false);
+                                    html5QrCode.stop().then(() => fetchIndividualData(finalId.toUpperCase()));
+                                }
+                            ).catch(err => console.error("Scanner failed", err));
                         }
                     }, 300);
                     return () => clearTimeout(timer);
@@ -253,42 +228,36 @@
             const handleSync = async (submissionType = 'growth') => {
                 if (submissionType === 'growth') {
                     if (!entry.weight) return;
-                    if (!viewingIndividual && usageStats.current >= usageStats.limit) {
-                        setShowUpgradeModal(true);
-                        return;
-                    }
+                    if (!viewingIndividual && usageStats.current >= usageStats.limit) { setShowUpgradeModal(true); return; }
                 }
                 setLoading(true);
                 try {
                     const payload = { 
-                        type: submissionType, 
-                        license: userId,
-                        ...entry, 
-                        id: bonaID, 
-                        mode: viewingIndividual ? 'update' : 'new',
-                        timestamp: new Date().toISOString() 
+                        type: submissionType, license: userId, ...entry, 
+                        id: bonaID, mode: viewingIndividual ? 'update' : 'new',
+                        env, timestamp: new Date().toISOString() 
                     };
                     const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (res.ok) {
                         setSaveStatus('success');
                         if (!viewingIndividual) setUsageStats(prev => ({ ...prev, current: prev.current + 1 }));
                         setTimeout(() => { 
-                            setSaveStatus('idle'); setLoading(false); setActiveTab('home'); 
+                            setSaveStatus('idle'); setLoading(false); setActiveTab('home'); setShowEnvModal(false); 
                             setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); 
                         }, 2000);
                     } else throw new Error("API Error");
-                } catch (e) { setLoading(false); setSaveStatus('error'); setErrorMsg("數據同步失敗，請檢查網路"); }
+                } catch (e) { setLoading(false); setSaveStatus('error'); setErrorMsg("同步失敗"); }
             };
 
             const PrintTagModal = () => (
                 <div className="fixed inset-0 z-[2500] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-slide-up">
                     <div className="bg-white text-black p-8 rounded-2xl w-full max-w-[300px] text-center shadow-2xl space-y-4">
-                        <div className="flex justify-between items-center border-b border-gray-100 pb-2"><span className="text-[10px] font-black uppercase text-gray-400">Bona Official Label</span><span className="text-[10px] font-bold text-gray-400">{entry.checkDate}</span></div>
+                        <div className="flex justify-between items-center border-b border-gray-100 pb-2"><span className="text-[10px] font-black uppercase text-gray-400">Bona Label</span><span className="text-[10px] font-bold text-gray-400">{entry.checkDate}</span></div>
                         <img src={qrUrl} className="w-48 h-48 mx-auto" alt="QR" />
                         <div className="space-y-1"><div className="text-3xl font-black font-mono tracking-tighter">{bonaID}</div><div className="text-[9px] font-bold text-gray-400 uppercase italic">Smart Tracking Asset</div></div>
                         <div className="grid grid-cols-2 gap-2 text-[8px] font-bold border-t border-gray-100 pt-3 text-left"><div><span className="text-gray-400 uppercase">SUB:</span> {entry.subMain}</div><div><span className="text-gray-400 uppercase">BOX:</span> {entry.containerVolume}</div></div>
                     </div>
-                    <p className="text-white/40 text-[10px] mt-8 font-bold uppercase tracking-widest italic text-center">請截圖保存後使用標籤機列印</p>
+                    <p className="text-white/40 text-[10px] mt-8 font-bold uppercase tracking-widest italic text-center">截圖保存後列印</p>
                     <button onClick={() => setShowPrintModal(false)} className="mt-8 bg-[#CA8A04] text-black px-12 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">關閉預覽</button>
                 </div>
             );
@@ -298,12 +267,13 @@
                     <div className="glass-card p-8 rounded-[2.5rem] w-full max-w-sm text-center border border-[#CA8A04]/50 shadow-[0_0_50px_rgba(202,138,4,0.2)]">
                         <div className="w-16 h-16 bg-[#CA8A04]/20 rounded-full flex items-center justify-center mx-auto mb-4"><Icon name="lock" size={32} color="#CA8A04" /></div>
                         <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Limit Reached</h3>
-                        <p className="text-xs text-zinc-400 leading-relaxed mb-6">您目前的方案僅支援 <span className="text-white font-bold">{usageStats.limit}</span> 筆資料。<br/>如需擴充至 <span className="text-[#CA8A04] font-bold">PRO 方案</span>，請聯繫 Bona Studio。</p>
-                        <div className="space-y-3"><button onClick={() => setShowUpgradeModal(false)} className="w-full bg-[#CA8A04] text-black font-black py-4 rounded-2xl text-xs uppercase tracking-widest active:scale-95 transition-all">了解方案</button><button onClick={() => setShowUpgradeModal(false)} className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">暫時不要</button></div>
+                        <p className="text-xs text-zinc-400 leading-relaxed mb-6">目前方案僅支援 <span className="text-white font-bold">{usageStats.limit}</span> 筆。<br/>請聯繫 Bona Studio 升級 PRO 方案。</p>
+                        <div className="space-y-3"><button onClick={() => setShowUpgradeModal(false)} className="w-full bg-[#CA8A04] text-black font-black py-4 rounded-2xl text-xs uppercase tracking-widest active:scale-95 transition-all">了解方案</button><button onClick={() => setShowUpgradeModal(false)} className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">關閉</button></div>
                     </div>
                 </div>
             );
 
+            // IntegratedProfileView
             const IntegratedProfileView = ({ data }) => (
                 <div className="space-y-8 animate-slide-up pb-48 px-6 pt-12 relative">
                     <header className="flex items-center justify-between"><button onClick={() => { setActiveTab('home'); setViewingIndividual(null); setScannedID(null); }} className="p-3 bg-zinc-900 rounded-2xl text-zinc-400 active:scale-90 transition-all"><Icon name="arrow-left" size={20} /></button><div className="text-right"><h2 className="text-2xl font-black italic text-white font-mono leading-none">{data.id}</h2><p className="text-[10px] text-[#CA8A04] font-black uppercase tracking-widest mt-1">Live Intelligence Active</p></div></header>
@@ -345,7 +315,7 @@
             if (!hasStarted) return (
                 <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-black animate-slide-up">
                     <img src={logoUrl} className="w-24 h-24 border-2 border-[#CA8A04] p-1 bg-black rounded-3xl shadow-2xl z-10" />
-                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V31.0</p></div>
+                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V31.1</p></div>
                     <button onClick={() => setHasStarted(true)} className="w-full max-w-xs bg-gradient-to-r from-yellow-700 via-[#CA8A04] to-yellow-700 text-black font-black py-6 rounded-3xl text-[11px] uppercase tracking-[0.3em] shadow-2xl mt-12 active:scale-95 transition-all">連線終端</button>
                 </div>
             );
@@ -374,24 +344,15 @@
                         {activeTab === 'home' && (
                             <div className="space-y-6 animate-slide-up">
                                 <header className="flex justify-between items-center"><div className="space-y-1"><p className="text-[10px] text-green-500 font-black uppercase italic tracking-widest leading-none">● Client: {userId}</p><h2 className="text-2xl font-black text-white italic tracking-tighter uppercase font-mono leading-none">Bona_Terminal</h2></div><button onClick={() => { localStorage.removeItem('bona_pro_license'); window.location.reload(); }} className="text-zinc-800 active:scale-90 transition-all"><Icon name="log-out" size={18} /></button></header>
-                                
-                                {/* 額度監控儀表板 */}
                                 <div className="bg-zinc-900/50 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-[#CA8A04]"><Icon name="database" size={18} /></div>
-                                        <div><p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Storage Used</p><p className="text-xs font-black text-white font-mono">{usageStats.current} / {usageStats.limit} <span className="text-[8px] text-zinc-600 ml-1">ENTRIES</span></p></div>
-                                    </div>
+                                    <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-[#CA8A04]"><Icon name="database" size={18} /></div><div><p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Storage Used</p><p className="text-xs font-black text-white font-mono">{usageStats.current} / {usageStats.limit} <span className="text-[8px] text-zinc-600 ml-1">ENTRIES</span></p></div></div>
                                     <div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden"><div className="h-full bg-[#CA8A04]" style={{ width: `${(usageStats.current/usageStats.limit)*100}%` }}></div></div>
                                 </div>
-
                                 <div className="bg-gradient-to-br from-[#CA8A04] to-yellow-800 p-8 rounded-[3.5rem] text-black shadow-2xl relative overflow-hidden active:scale-95 transition-transform" onClick={() => setIsScanning(true)}>
                                     <div className="relative z-10 space-y-4"><Icon name="scan-qr-code" size={32} /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">掃描識別 / Scan</h3><p className="text-[10px] font-bold opacity-80 uppercase tracking-widest max-w-[180px]">掃描標籤即可檢索個體生長履歷，並快速錄入數據。</p><div className="bg-black text-white px-8 py-3 rounded-full text-[9px] font-black uppercase tracking-widest inline-block italic shadow-xl">啟動相機掃描</div></div>
                                     <Icon name="history" size={180} className="absolute -bottom-10 -right-10 opacity-10 rotate-12" />
                                 </div>
-                                <div className="bg-zinc-900/80 border border-white/5 p-8 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden active:scale-[0.98] transition-all" onClick={() => { 
-                                    if(usageStats.current >= usageStats.limit) { setShowUpgradeModal(true); return; }
-                                    setActiveTab('entry'); setScannedID(null); setViewingIndividual(null); 
-                                }}>
+                                <div className="bg-zinc-900/80 border border-white/5 p-8 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden active:scale-[0.98] transition-all" onClick={() => { if(usageStats.current >= usageStats.limit) { setShowUpgradeModal(true); return; } setActiveTab('entry'); setScannedID(null); setViewingIndividual(null); }}>
                                     <div className="relative z-10 space-y-4"><Icon name="sparkles" size={32} color="#CA8A04" /><h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none">新命錄入 / New</h3><p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">建立新生命數據，填寫遺傳資訊並產生 QR 標籤。</p><div className="bg-zinc-800 text-zinc-400 px-8 py-2.5 rounded-full text-[8px] font-black uppercase tracking-widest inline-block italic border border-white/5 shadow-inner">Register_Hatch</div></div>
                                 </div>
                             </div>
