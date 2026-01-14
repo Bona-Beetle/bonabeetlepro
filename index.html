@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bona Beetle PRO | 商務營利終端</title>
+    <title>Bona Beetle PRO | 商務終極版</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="logo.jpg">
@@ -24,14 +24,14 @@
         .main-scroll-container::-webkit-scrollbar { display: none; }
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
         input[type="date"], input[type="text"], textarea, select { color-scheme: dark; background: #000; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 14px; font-size: 14px; width: 100%; outline: none; transition: all 0.3s; }
-        input:focus, textarea:focus, select:focus { border-color: var(--b-gold); box-shadow: 0 0 10px rgba(202, 138, 4, 0.2); }
-        input:disabled { opacity: 0.5; color: #71717a; border-color: transparent; }
-        .glass-card { background: rgba(24, 24, 27, 0.85); backdrop-blur: 20px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        input:focus, select:focus { border-color: var(--b-gold); box-shadow: 0 0 10px rgba(202, 138, 4, 0.2); }
+        input:disabled { opacity: 0.6; color: #a1a1aa; border-color: rgba(255,255,255,0.05); background: #111; }
+        #reader { width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid rgba(202, 138, 4, 0.3); background: #000; min-height: 300px; }
+        .glass-card { background: rgba(24, 24, 27, 0.9); backdrop-blur: 20px; border: 1px solid rgba(255, 255, 255, 0.08); }
         .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        #reader { width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid rgba(202, 138, 4, 0.3); background: #000; min-height: 300px; }
-        .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--b-gold); box-shadow: 0 0 20px var(--b-gold); animation: scanGlow 2s infinite linear; z-index: 20; }
         @keyframes scanGlow { 0% { top: -10%; } 100% { top: 110%; } }
+        .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--b-gold); box-shadow: 0 0 20px var(--b-gold); animation: scanGlow 2s infinite linear; z-index: 20; }
     </style>
 </head>
 <body class="h-full">
@@ -56,8 +56,8 @@
             const [showLoginModal, setShowLoginModal] = useState(!localStorage.getItem('bona_pro_license'));
             const [usageStats, setUsageStats] = useState({ current: 42, limit: 50, plan: 'BASIC' });
             
+            // viewingIndividual: 非 null 代表成功抓到資料 (檢視模式)，null 代表新命錄入模式
             const [viewingIndividual, setViewingIndividual] = useState(null);
-            const [isGeneticsLocked, setIsGeneticsLocked] = useState(true); // 新增：親代資料鎖定狀態
 
             const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w";
             const logoUrl = "logo.jpg";
@@ -95,32 +95,57 @@
                 const latest = history[history.length - 1];
                 const previous = history[history.length - 2];
                 const first = history[0];
-                const weightDiff = parseFloat(latest.weight) - (previous.weight === 'L1' ? 0 : parseFloat(previous.weight));
-                const dateDiff = Math.max((new Date(latest.date) - new Date(previous.date)) / (1000 * 60 * 60 * 24), 1);
-                const totalWeight = parseFloat(latest.weight);
-                const totalDays = Math.max((new Date(latest.date) - new Date(first.date)) / (1000 * 60 * 60 * 24), 1);
+                const w1 = parseFloat(previous.weight) || 0;
+                const w2 = parseFloat(latest.weight) || 0;
+                const d1 = new Date(previous.date);
+                const d2 = new Date(latest.date);
+                const d0 = new Date(first.date);
+                const dateDiff = Math.max((d2 - d1) / (1000 * 60 * 60 * 24), 1);
+                const totalDays = Math.max((d2 - d0) / (1000 * 60 * 60 * 24), 1);
                 return { 
-                    intervalGain: (weightDiff / dateDiff).toFixed(2), 
-                    totalAvgGain: (totalWeight / totalDays).toFixed(2), 
+                    intervalGain: ((w2 - w1) / dateDiff).toFixed(2), 
+                    totalAvgGain: (w2 / totalDays).toFixed(2), 
                     daysSinceLast: Math.floor(dateDiff) 
                 };
             };
 
+            // --- V34.0 強制解析引擎 (Force Parser) ---
             const parseNotionData = (rawData) => {
                 if (!rawData) return [];
                 let dataToProcess = rawData;
-                if (typeof rawData === 'string') { try { dataToProcess = JSON.parse(rawData); } catch (e) { return []; } }
-                if (dataToProcess && !Array.isArray(dataToProcess) && typeof dataToProcess === 'object') {
-                    if (dataToProcess.raw) dataToProcess = dataToProcess.raw;
-                    else if (dataToProcess.results) dataToProcess = dataToProcess.results;
-                    else if (dataToProcess.growthHistory) dataToProcess = dataToProcess.growthHistory;
-                    else dataToProcess = [dataToProcess];
+                
+                // 1. 第一層解碼：如果 Make 傳回來的是 JSON 字串
+                if (typeof rawData === 'string') {
+                    try { dataToProcess = JSON.parse(rawData); } catch (e) { 
+                        console.error("L1 Parse Fail", e); 
+                        return []; 
+                    }
                 }
+                
+                // 2. 結構正規化：尋找陣列本體
+                if (!Array.isArray(dataToProcess) && typeof dataToProcess === 'object') {
+                    // Make 有時候會把陣列包在 'raw' 或 'results' 或 'body' 裡
+                    if (dataToProcess.raw) {
+                         // 3. 第二層解碼：如果 'raw' 裡面又是字串 (常見錯誤)
+                         if (typeof dataToProcess.raw === 'string') {
+                             try { dataToProcess = JSON.parse(dataToProcess.raw); } catch(e) { console.error("L2 Parse Fail", e); }
+                         } else {
+                             dataToProcess = dataToProcess.raw;
+                         }
+                    } else if (dataToProcess.results) {
+                        dataToProcess = dataToProcess.results;
+                    } else {
+                        dataToProcess = [dataToProcess]; // 只有一筆資料時
+                    }
+                }
+
                 if (!Array.isArray(dataToProcess)) return [];
 
+                // 4. 萬能取值器：無論 Make 怎麼包，用力挖出來
                 const getValue = (item, keys) => {
                     const paths = [
-                        keys, keys.toLowerCase(),
+                        keys, 
+                        keys.toLowerCase(),
                         `properties value.${keys}.number`, `properties value.${keys}.select.name`, `properties value.${keys}.rich_text.0.text.content`, `properties value.${keys}.date.start`, `properties value.${keys}.title.0.text.content`,
                         `properties.${keys}.number`, `properties.${keys}.select.name`, `properties.${keys}.rich_text.0.text.content`, `properties.${keys}.date.start`, `properties.${keys}.title.0.text.content`
                     ];
@@ -151,21 +176,23 @@
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ type: 'query', id, license: userId })
                     });
+                    
                     if (!res.ok) throw new Error("Connection Error");
                     const responseBody = await res.json();
                     
+                    // 呼叫強力解析器
                     let history = parseNotionData(responseBody);
+
                     if (history.length === 0) throw new Error("No Data Found");
 
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
                     const latest = history[history.length - 1];
-                    const first = history[0];
-                    const meta = { sire: first.sire || '-', dam: first.dam || '-', gen: first.gen || '-', hatch: first.hatch || entry.hatchDate };
-
-                    // 檢視模式：鎖定親代資料，但允許解鎖
-                    setIsGeneticsLocked(true);
-                    // 預填這隻蟲的親代資料到 Entry 表單，方便如果用戶想修改時直接有舊資料
-                    setEntry(prev => ({ ...prev, parentMaleSize: meta.sire, parentFemaleSize: meta.dam, generation: meta.gen }));
+                    const first = history[0]; // 假設第一筆包含血統資料
+                    
+                    const meta = { 
+                        sire: first.sire || '-', dam: first.dam || '-', 
+                        gen: first.gen || '-', hatch: first.hatch || entry.hatchDate 
+                    };
 
                     setViewingIndividual({
                         id: id, species: "PGK", lineage: "Bona Lineage",
@@ -173,13 +200,21 @@
                         hatchDate: meta.hatch, currentWeight: latest.weight,
                         growthHistory: history, metrics: calculateMetrics(history)
                     });
+                    
+                    // 成功抓到資料：更新表單預填為最新狀態，方便直接修改
+                    setEntry(prev => ({
+                        ...prev,
+                        subMain: latest.sub !== '無紀錄' ? latest.sub : prev.subMain,
+                        containerVolume: latest.box !== '無紀錄' ? latest.box : prev.containerVolume
+                    }));
+
                     setScannedID(id); setLoading(false); setActiveTab('detail');
 
                 } catch (e) { 
                     setLoading(false); 
-                    // 查無資料：進入補登模式，ID 鎖定但親代可填
-                    console.log("Fetch Failed, Mode -> New Entry", e);
-                    // 這裡可以加一個 Toast 提示 "查無資料，請進行初次錄入"
+                    // 查無資料：進入【補登模式】
+                    // 關鍵：鎖定 ID，開放親代填寫
+                    console.log("Entering Recovery Mode:", e);
                     setViewingIndividual(null); 
                     setScannedID(id); 
                     setActiveTab('entry'); 
@@ -212,9 +247,16 @@
                 }
                 setLoading(true);
                 try {
+                    // 如果 viewingIndividual 存在，代表是更新模式，否則為新命模式
+                    // 這樣 Make 就能透過 mode 參數知道是要 Create 還是 Search & Append
+                    const currentMode = viewingIndividual ? 'update' : 'new';
+
                     const payload = { 
-                        type: submissionType, license: userId, ...entry, 
-                        id: bonaID, mode: viewingIndividual ? 'update' : 'new',
+                        type: submissionType, 
+                        license: userId,
+                        ...entry, 
+                        id: bonaID, 
+                        mode: currentMode,
                         timestamp: new Date().toISOString() 
                     };
                     const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -226,7 +268,7 @@
                             setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); 
                         }, 2000);
                     } else throw new Error("API Error");
-                } catch (e) { setLoading(false); setSaveStatus('error'); setErrorMsg("Sync Failed"); }
+                } catch (e) { setLoading(false); setSaveStatus('error'); setErrorMsg("同步失敗"); }
             };
 
             const PrintTagModal = () => (
@@ -237,7 +279,7 @@
                         <div className="space-y-1"><div className="text-3xl font-black font-mono tracking-tighter">{bonaID}</div><div className="text-[9px] font-bold text-gray-400 uppercase italic">Smart Asset</div></div>
                         <div className="grid grid-cols-2 gap-2 text-[8px] font-bold border-t border-gray-100 pt-3 text-left"><div><span className="text-gray-400 uppercase">SUB:</span> {entry.subMain}</div><div><span className="text-gray-400 uppercase">HATCH:</span> {entry.hatchDate}</div></div>
                     </div>
-                    <button onClick={() => setShowPrintModal(false)} className="mt-8 bg-[#CA8A04] text-black px-12 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">關閉</button>
+                    <button onClick={() => setShowPrintModal(false)} className="mt-8 bg-[#CA8A04] text-black px-12 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">關閉預覽</button>
                 </div>
             );
 
@@ -251,24 +293,18 @@
                 </div>
             );
 
+            // IntegratedProfileView - 檢視模式 (成功抓到資料時顯示)
             const IntegratedProfileView = ({ data }) => (
                 <div className="space-y-8 animate-slide-up pb-48 px-6 pt-12 relative">
-                    <header className="flex items-center justify-between"><button onClick={() => { setActiveTab('home'); setViewingIndividual(null); setScannedID(null); }} className="p-3 bg-zinc-900 rounded-2xl text-zinc-400 active:scale-90 transition-all"><Icon name="arrow-left" size={20} /></button><div className="text-right"><h2 className="text-2xl font-black italic text-white font-mono leading-none">{data.id}</h2><p className="text-[10px] text-[#CA8A04] font-black uppercase tracking-widest mt-1">Live Intelligence</p></div></header>
+                    <header className="flex items-center justify-between"><button onClick={() => { setActiveTab('home'); setViewingIndividual(null); setScannedID(null); }} className="p-3 bg-zinc-900 rounded-2xl text-zinc-400 active:scale-90 transition-all"><Icon name="arrow-left" size={20} /></button><div className="text-right"><h2 className="text-2xl font-black italic text-white font-mono leading-none">{data.id}</h2><p className="text-[10px] text-[#CA8A04] font-black uppercase tracking-widest mt-1">Live Intelligence Active</p></div></header>
                     <div className="bg-zinc-900/80 backdrop-blur-xl p-7 rounded-[3rem] border border-[#CA8A04]/30 relative overflow-hidden shadow-2xl">
                         <div className="relative z-10 flex justify-between items-end mb-6"><div><p className="text-[9px] text-zinc-500 font-black uppercase italic mb-1 leading-none">Mass Index</p><div className="text-6xl font-black text-white italic font-mono leading-none">{data.currentWeight}<span className="text-xs ml-1 text-[#CA8A04]">G</span></div></div><div className="text-right"><div className="flex items-center justify-end gap-1 text-green-500 mb-1"><Icon name="trending-up" size={12} /><span className="text-[9px] font-black uppercase italic tracking-tighter">Daily Gain</span></div><div className="text-2xl font-black text-white font-mono italic leading-none">+{data.metrics.intervalGain}<span className="text-[10px] ml-1 uppercase text-zinc-600">g/d</span></div></div></div>
                         <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6 text-[10px] font-black uppercase italic text-zinc-500"><div>總平均: <span className="text-zinc-200 font-mono">+{data.metrics.totalAvgGain}</span></div><div className="text-right">天數: <span className="text-zinc-200 font-mono">{data.metrics.daysSinceLast}</span></div></div>
                     </div>
-                    {/* 血統 (預設唯讀，可解鎖) */}
-                    <div className="relative">
-                        <button onClick={() => setIsGeneticsLocked(!isGeneticsLocked)} className="absolute top-0 right-0 p-3 text-zinc-500 active:text-[#CA8A04] z-10"><Icon name={isGeneticsLocked ? "lock" : "unlock"} size={14} /></button>
-                        <div className={`grid grid-cols-2 gap-3 transition-all ${isGeneticsLocked ? 'opacity-80' : 'opacity-100'}`}>
-                            <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♂</label>
-                                {isGeneticsLocked ? <p className="text-xs font-black text-white italic font-mono">{data.parentMaleSize}</p> : <input type="text" value={entry.parentMaleSize} onChange={e=>setEntry({...entry, parentMaleSize: e.target.value})} className="bg-black/50 border-white/10 p-2 text-xs font-mono" />}
-                            </div>
-                            <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♀</label>
-                                {isGeneticsLocked ? <p className="text-xs font-black text-white italic font-mono">{data.parentFemaleSize}</p> : <input type="text" value={entry.parentFemaleSize} onChange={e=>setEntry({...entry, parentFemaleSize: e.target.value})} className="bg-black/50 border-white/10 p-2 text-xs font-mono" />}
-                            </div>
-                        </div>
+                    {/* 檢視模式：親代資料為唯讀文字，非輸入框 */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♂</label><p className="text-xs font-black text-white italic font-mono">{data.parentMaleSize}</p></div>
+                        <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♀</label><p className="text-xs font-black text-white italic font-mono">{data.parentFemaleSize}</p></div>
                     </div>
                     <div className="bg-zinc-900/50 rounded-[2.5rem] border border-white/5 overflow-hidden">
                         <div className="bg-zinc-800/30 px-6 py-4 border-b border-white/5 flex items-center gap-2"><Icon name="history" size={16} color="#CA8A04" /><span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">Timeline</span></div>
@@ -277,8 +313,7 @@
                     <div className="bg-[#18181B] p-8 rounded-[3.5rem] border border-[#CA8A04]/20 space-y-8 shadow-2xl">
                         <div className="text-center">
                             <p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono">Log Today's Weight</p>
-                            {/* 修復體重欄位 */}
-                            <input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-full max-w-[200px] mx-auto italic tabular-nums placeholder:text-zinc-900 border-b border-transparent focus:border-[#CA8A04] transition-all" />
+                            <input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-40 mx-auto italic tabular-nums placeholder:text-zinc-900 border-b border-transparent focus:border-[#CA8A04] transition-all" />
                         </div>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-3"><input type="date" value={entry.checkDate} onChange={e=>setEntry({...entry, checkDate: e.target.value})} /><select value={entry.booster} onChange={e=>setEntry({...entry, booster: e.target.value})} className="font-bold">{["無添加", "10g/10L", "20g/10L", "極限組"].map(opt => <option key={opt}>{opt}</option>)}</select></div>
@@ -303,7 +338,7 @@
             if (!hasStarted) return (
                 <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-black animate-slide-up">
                     <img src={logoUrl} className="w-24 h-24 border-2 border-[#CA8A04] p-1 bg-black rounded-3xl shadow-2xl z-10" />
-                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V33.1</p></div>
+                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V34.0</p></div>
                     <button onClick={() => setHasStarted(true)} className="w-full max-w-xs bg-gradient-to-r from-yellow-700 via-[#CA8A04] to-yellow-700 text-black font-black py-6 rounded-3xl text-[11px] uppercase tracking-[0.3em] shadow-2xl mt-12 active:scale-95 transition-all">連線終端</button>
                 </div>
             );
@@ -344,11 +379,12 @@
                                 <div className="glass-card p-7 rounded-[2.8rem] border border-white/5 space-y-6 shadow-xl mx-2">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-1"><label className="text-[8px] text-zinc-500 font-black uppercase italic tracking-widest">System Master ID</label><div className="text-3xl font-black text-white italic tracking-tighter font-mono">{bonaID}</div><button onClick={() => setShowPrintModal(true)} className="flex items-center gap-2 text-[10px] text-[#CA8A04] font-black uppercase mt-3 py-2 px-4 bg-[#CA8A04]/10 rounded-full border border-[#CA8A04]/20 active:scale-95 transition-all"><Icon name="printer" size={14} /> 產生列印標籤</button></div>
-                                        {/* 如果是掃描補登，顯示重置按鈕 */}
+                                        {/* 重置按鈕：讓掃描進入的補登模式也可以刷新 ID */}
                                         <button onClick={() => { setScannedID(null); setSerial(Math.floor(Math.random() * 900) + 100); }} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6">
                                         <div className="space-y-1"><label className="text-[9px] text-[#CA8A04] font-black uppercase italic ml-1">★ 挖出日期</label><input type="date" value={entry.hatchDate} onChange={e=>setEntry({...entry, hatchDate: e.target.value})} className="gold-glow" /></div>
+                                        {/* 鎖定前綴邏輯：如果有 scannedID (從掃描來的)，鎖定不給改。除非按了上面的刷新按鈕變成 null */}
                                         <div className="space-y-1"><label className="text-[9px] text-zinc-500 font-black uppercase italic ml-1">物種前綴</label><input value={prefix} onChange={e=>setPrefix(e.target.value.toUpperCase())} disabled={!!scannedID} className={`font-black ${scannedID ? 'text-zinc-500' : 'text-[#CA8A04]'}`} /></div>
                                     </div>
                                 </div>
@@ -361,7 +397,10 @@
                                     <div className="space-y-1.5"><label className="text-[9px] text-zinc-500 font-black uppercase ml-1">Generation (累代)</label><input type="text" placeholder="e.g. CBF1" value={entry.generation} onChange={e=>setEntry({...entry, generation: e.target.value})} /></div>
                                 </div>
                                 <div className="bg-zinc-900 p-8 rounded-[3.5rem] border border-[#CA8A04]/10 space-y-8 shadow-2xl mx-2">
-                                    <div className="text-center"><p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono animate-pulse">Initial Weight (G)</p><input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-full max-w-[200px] mx-auto italic tabular-nums placeholder:text-zinc-900 border-b border-transparent focus:border-[#CA8A04] transition-all" /></div>
+                                    <div className="text-center">
+                                        <p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono animate-pulse">Initial Weight (G)</p>
+                                        <input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-40 mx-auto italic tabular-nums placeholder:text-zinc-900 border-b border-transparent focus:border-[#CA8A04] transition-all" />
+                                    </div>
                                     <div className="space-y-5">
                                         <div className="grid grid-cols-2 gap-3"><select value={entry.subMain} onChange={e=>setEntry({...entry, subMain: e.target.value})} className="font-bold">{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select><select value={entry.subSecondary} onChange={e=>setEntry({...entry, subSecondary: e.target.value})} className="font-bold italic"><option value="無">無</option>{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select></div>
                                         <div className="grid grid-cols-2 gap-3"><select value={entry.containerType} onChange={e=>setEntry({...entry, containerType: e.target.value})} className="font-bold">{CONTAINERS.map(opt => <option key={opt}>{opt}</option>)}</select><select value={entry.containerVolume} onChange={e=>setEntry({...entry, containerVolume: e.target.value})} className="font-bold">{VOLUMES.map(opt => <option key={opt}>{opt}</option>)}</select></div>
