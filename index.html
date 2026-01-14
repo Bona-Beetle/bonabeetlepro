@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bona PRO | 商務營利終端</title>
+    <title>Bona PRO | 全參數履歷終端</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="logo.png">
@@ -50,7 +50,7 @@
             const [saveStatus, setSaveStatus] = useState('idle');
             const [showPrintModal, setShowPrintModal] = useState(false);
             const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-            const [showSearchModal, setShowSearchModal] = useState(false); // 新增手動查詢
+            const [showSearchModal, setShowSearchModal] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
             const [errorMsg, setErrorMsg] = useState('');
             const [userId, setUserId] = useState(() => localStorage.getItem('bona_pro_license') || '');
@@ -101,25 +101,25 @@
                 const d0 = new Date(first.date);
                 const dateDiff = Math.max((d2 - d1) / (1000 * 60 * 60 * 24), 1);
                 const totalDays = Math.max((d2 - d0) / (1000 * 60 * 60 * 24), 1);
-                
-                // 修復：使用正確的變數 w1, w2
-                return { 
-                    intervalGain: ((w2 - w1) / dateDiff).toFixed(2), 
-                    totalAvgGain: (w2 / totalDays).toFixed(2), 
-                    daysSinceLast: Math.floor(dateDiff) 
-                };
+                return { intervalGain: ((w2 - w1) / dateDiff).toFixed(2), totalAvgGain: (w2 / totalDays).toFixed(2), daysSinceLast: Math.floor(dateDiff) };
             };
 
+            // --- V43.0 全欄位解析器 ---
             const parseNotionData = (rawData) => {
                 if (!rawData) return [];
                 let dataToProcess = rawData;
-                if (typeof rawData === 'string') { try { dataToProcess = JSON.parse(rawData); } catch (e) { return []; } }
-                if (dataToProcess && typeof dataToProcess === 'object') {
+                
+                if (typeof rawData === 'string') {
+                    try { dataToProcess = JSON.parse(rawData); } catch (e) { return []; }
+                }
+                
+                if (!Array.isArray(dataToProcess) && typeof dataToProcess === 'object') {
                     if (dataToProcess.raw) dataToProcess = dataToProcess.raw;
                     else if (dataToProcess.results) dataToProcess = dataToProcess.results;
                     else if (dataToProcess.growthHistory) dataToProcess = dataToProcess.growthHistory;
                     else dataToProcess = [dataToProcess];
                 }
+
                 if (!Array.isArray(dataToProcess)) return [];
 
                 const getValue = (item, keys) => {
@@ -129,7 +129,8 @@
 
                     for (let key of allKeys) {
                         const paths = [
-                            key, `properties value.${key}.number`, `properties value.${key}.select.name`, `properties value.${key}.rich_text.0.text.content`, `properties value.${key}.date.start`, `properties value.${key}.title.0.text.content`,
+                            key, 
+                            `properties value.${key}.number`, `properties value.${key}.select.name`, `properties value.${key}.rich_text.0.text.content`, `properties value.${key}.date.start`, `properties value.${key}.title.0.text.content`,
                             `properties.${key}.number`, `properties.${key}.select.name`, `properties.${key}.rich_text.0.text.content`, `properties.${key}.date.start`, `properties.${key}.title.0.text.content`
                         ];
                         for (let path of paths) {
@@ -143,11 +144,13 @@
                 return dataToProcess.map(item => ({
                     date: getValue(item, ['Date_Check', 'date']),
                     weight: getValue(item, ['Weight', 'weight']) || 0,
-                    sub: getValue(item, ['Sub_Main', 'sub']) || '無紀錄',
-                    box: getValue(item, ['Box_Vol', 'box']) || '無紀錄',
+                    subMain: getValue(item, ['Sub_Main', 'sub', 'subMain']) || '-',
+                    subSec: getValue(item, ['Sub_Sec', 'sub_sec', 'subSecondary']) || '-',
+                    boxType: getValue(item, ['Box_Type', 'box_type', 'containerType']) || '-',
+                    boxVol: getValue(item, ['Box_Vol', 'box_vol', 'containerVolume']) || '-',
                     sire: getValue(item, ['Sire_Size', 'sire']) || '-',
                     dam: getValue(item, ['Dam_Size', 'dam']) || '-',
-                    gen: getValue(item, ['Generation', 'gen']) || '-',
+                    gen: getValue(item, ['Generation', 'gen', 'generation']) || '-',
                     hatch: getValue(item, ['Date_Hatch', 'hatch'])
                 })).filter(i => i.date);
             };
@@ -156,14 +159,14 @@
                 setLoading(true);
                 setErrorMsg('');
                 
-                // --- 密技：DEMO 模式 ---
                 if (id === 'DEMO') {
+                    // Demo Data Update: Include full substrate and box info
                     setTimeout(() => {
                         const mockHistory = [
-                            { date: "2024-05-12", weight: "L1", sub: "W木屑", box: "140ml", sire: "85mm", dam: "52mm", gen: "CBF1", hatch: "2024-05-12" },
-                            { date: "2024-08-20", weight: "12.4", sub: "W木屑", box: "800ml" },
-                            { date: "2024-11-15", weight: "28.9", sub: "AK木屑", box: "1400ml" },
-                            { date: "2024-12-28", weight: "42.5", sub: "AK木屑", box: "1400ml" }
+                            { date: "2024-05-12", weight: "L1", subMain: "W木屑", subSec: "無", boxType: "布丁杯", boxVol: "140ml", sire: "85mm", dam: "52mm", gen: "CBF1", hatch: "2024-05-12" },
+                            { date: "2024-08-20", weight: "12.4", subMain: "W木屑", subSec: "AKD木屑", boxType: "塑膠圓筒", boxVol: "800ml" },
+                            { date: "2024-11-15", weight: "28.9", subMain: "AKD木屑", subSec: "P2木屑", boxType: "塑膠圓筒", boxVol: "1400ml" },
+                            { date: "2024-12-28", weight: "42.5", subMain: "AKD木屑", subSec: "P2木屑", boxType: "塑膠圓筒", boxVol: "1400ml" }
                         ];
                         const metrics = calculateMetrics(mockHistory);
                         setViewingIndividual({
@@ -180,7 +183,6 @@
                     return;
                 }
 
-                // 真實連線
                 try {
                     const res = await fetch(WEBHOOK_URL, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -197,16 +199,15 @@
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
                     const latest = history[history.length - 1];
                     
-                    // 尋找最早的一筆有效親代資料
-                    const firstWithGen = history.find(h => h.gen !== '-') || history[0];
-                    const firstWithSire = history.find(h => h.sire !== '-') || history[0];
-                    const firstWithDam = history.find(h => h.dam !== '-') || history[0];
+                    const firstWithGen = history.find(h => h.gen && h.gen !== '-') || history[0];
+                    const firstWithSire = history.find(h => h.sire && h.sire !== '-') || history[0];
+                    const firstWithDam = history.find(h => h.dam && h.dam !== '-') || history[0];
                     const firstWithHatch = history.find(h => h.hatch) || history[0];
                     
                     const meta = { 
-                        sire: firstWithSire.sire, 
-                        dam: firstWithDam.dam, 
-                        gen: firstWithGen.gen, 
+                        sire: firstWithSire.sire || '-', 
+                        dam: firstWithDam.dam || '-', 
+                        gen: firstWithGen.gen || '-', 
                         hatch: firstWithHatch.hatch || entry.hatchDate 
                     };
 
@@ -219,14 +220,16 @@
                     
                     setEntry(prev => ({
                         ...prev,
-                        subMain: latest.sub !== '無紀錄' ? latest.sub : prev.subMain,
+                        subMain: latest.subMain !== '-' ? latest.subMain : prev.subMain,
+                        subSecondary: latest.subSec !== '-' ? latest.subSec : prev.subSecondary,
+                        containerType: latest.boxType !== '-' ? latest.boxType : prev.containerType,
+                        containerVolume: latest.boxVol !== '-' ? latest.boxVol : prev.containerVolume
                     }));
 
                     setScannedID(id); setLoading(false); setShowSearchModal(false); setActiveTab('detail');
 
                 } catch (e) { 
                     setLoading(false); 
-                    // 查無資料 -> 進入補登
                     console.log("Entering Recovery Mode:", e);
                     setViewingIndividual(null); 
                     setScannedID(id); 
@@ -310,7 +313,6 @@
                 </div>
             );
 
-            // 手動查詢彈窗 (新功能)
             const SearchModal = () => (
                 <div className="fixed inset-0 z-[2500] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-slide-up">
                     <div className="glass-card p-8 rounded-[2.5rem] w-full max-w-sm text-center border border-[#CA8A04]/50">
@@ -325,7 +327,7 @@
                 </div>
             );
 
-            // IntegratedProfileView
+            // IntegratedProfileView (更新：顯示完整飼育參數)
             const IntegratedProfileView = ({ data }) => (
                 <div className="space-y-8 animate-slide-up pb-48 px-6 pt-12 relative">
                     <header className="flex items-center justify-between"><button onClick={() => { setActiveTab('home'); setViewingIndividual(null); setScannedID(null); }} className="p-3 bg-zinc-900 rounded-2xl text-zinc-400 active:scale-90 transition-all"><Icon name="arrow-left" size={20} /></button><div className="text-right"><h2 className="text-2xl font-black italic text-white font-mono leading-none">{data.id}</h2><p className="text-[10px] text-[#CA8A04] font-black uppercase tracking-widest mt-1">Live Intelligence Active</p></div></header>
@@ -334,14 +336,34 @@
                         <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6 text-[10px] font-black uppercase italic text-zinc-500"><div>總平均: <span className="text-zinc-200 font-mono">+{data.metrics.totalAvgGain}</span></div><div className="text-right">天數: <span className="text-zinc-200 font-mono">{data.metrics.daysSinceLast}</span></div></div>
                     </div>
                     {/* 血統 (唯讀) */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♂</label><p className="text-xs font-black text-white italic font-mono">{data.parentMaleSize}</p></div>
-                        <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♀</label><p className="text-xs font-black text-white italic font-mono">{data.parentFemaleSize}</p></div>
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-zinc-900/50 p-4 rounded-[1.5rem] border border-white/5 text-center"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Sire ♂</label><p className="text-xs font-black text-white italic font-mono">{data.parentMaleSize}</p></div>
+                        <div className="bg-zinc-900/50 p-4 rounded-[1.5rem] border border-white/5 text-center"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Dam ♀</label><p className="text-xs font-black text-white italic font-mono">{data.parentFemaleSize}</p></div>
+                        <div className="bg-zinc-900/50 p-4 rounded-[1.5rem] border border-white/5 text-center"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Gen</label><p className="text-xs font-black text-[#CA8A04] italic font-mono">{data.generation}</p></div>
                     </div>
-                    {/* 歷史紀錄 */}
+                    {/* 歷史紀錄 (升級版) */}
                     <div className="bg-zinc-900/50 rounded-[2.5rem] border border-white/5 overflow-hidden">
-                        <div className="bg-zinc-800/30 px-6 py-4 border-b border-white/5 flex items-center gap-2"><Icon name="history" size={16} color="#CA8A04" /><span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">Timeline</span></div>
-                        <div className="p-4 space-y-4">{data.growthHistory.slice().reverse().map((h, i) => (<div key={i} className="flex justify-between items-center text-[10px] font-mono border-b border-white/5 pb-2 last:border-0"><span className="text-zinc-500">{h.date}</span><span className="text-zinc-200 font-bold">{h.weight}g</span><span className="text-[#CA8A04]/50">{h.sub}</span></div>))}</div>
+                        <div className="bg-zinc-800/30 px-6 py-4 border-b border-white/5 flex items-center gap-2"><Icon name="history" size={16} color="#CA8A04" /><span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">History Log</span></div>
+                        <div className="p-4 space-y-4">
+                            {data.growthHistory.slice().reverse().map((h, i) => (
+                                <div key={i} className="flex flex-col border-b border-white/5 pb-3 last:border-0">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-[10px] text-zinc-500 font-mono">{h.date}</span>
+                                        <span className="text-sm font-black text-white italic font-mono">{h.weight}g</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex gap-1 items-center">
+                                            <span className="text-[8px] px-2 py-0.5 bg-yellow-900/30 text-yellow-500 rounded-md font-bold truncate max-w-[80px]">{h.subMain}</span>
+                                            {h.subSec !== '無' && h.subSec !== '-' && <span className="text-[8px] px-2 py-0.5 bg-yellow-900/20 text-yellow-600/70 rounded-md font-bold truncate max-w-[60px]">+ {h.subSec}</span>}
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <span className="text-[8px] px-2 py-0.5 bg-blue-900/30 text-blue-400 rounded-md font-bold">{h.boxType}</span>
+                                            <span className="text-[8px] px-2 py-0.5 bg-blue-900/20 text-blue-500/70 rounded-md font-bold">{h.boxVol}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     {/* 掃描後的更新表單 */}
                     <div className="bg-[#18181B] p-8 rounded-[3.5rem] border border-[#CA8A04]/20 space-y-8 shadow-2xl">
@@ -351,7 +373,6 @@
                         </div>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-3">
-                                {/* ★ 修復：加入日期選單 */}
                                 <div><label className="text-[9px] text-zinc-500 font-black uppercase ml-1 italic">Date</label><input type="date" value={entry.checkDate} onChange={e=>setEntry({...entry, checkDate: e.target.value})} /></div>
                                 <div><label className="text-[9px] text-zinc-500 font-black uppercase ml-1 italic">Booster</label><select value={entry.booster} onChange={e=>setEntry({...entry, booster: e.target.value})} className="font-bold">{["無添加", "10g/10L", "20g/10L", "極限組"].map(opt => <option key={opt}>{opt}</option>)}</select></div>
                             </div>
@@ -376,7 +397,7 @@
             if (!hasStarted) return (
                 <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-black animate-slide-up">
                     <img src={logoUrl} onError={(e) => {e.target.src = "https://via.placeholder.com/150?text=Bona"}} className="w-24 h-24 border-2 border-[#CA8A04] p-1 bg-black rounded-3xl shadow-2xl z-10" />
-                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V42.1</p></div>
+                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V43.0</p></div>
                     <button onClick={() => setHasStarted(true)} className="w-full max-w-xs bg-gradient-to-r from-yellow-700 via-[#CA8A04] to-yellow-700 text-black font-black py-6 rounded-3xl text-[11px] uppercase tracking-[0.3em] shadow-2xl mt-12 active:scale-95 transition-all">連線終端</button>
                 </div>
             );
@@ -405,13 +426,7 @@
                     <main className="main-scroll-container pt-12 px-6 relative z-10 scroll-smooth">
                         {activeTab === 'home' && (
                             <div className="space-y-6 animate-slide-up">
-                                <header className="flex justify-between items-center">
-                                    <div className="space-y-1"><p className="text-[10px] text-green-500 font-black uppercase italic tracking-widest leading-none">● Client: {userId}</p><h2 className="text-2xl font-black text-white italic tracking-tighter uppercase font-mono leading-none">Bona_Terminal</h2></div>
-                                    <div className="flex gap-4">
-                                        <button onClick={()=>setShowSearchModal(true)} className="text-zinc-500 hover:text-[#CA8A04]"><Icon name="search" size={18} /></button>
-                                        <button onClick={() => { localStorage.removeItem('bona_pro_license'); window.location.reload(); }} className="text-zinc-800 hover:text-red-500"><Icon name="log-out" size={18} /></button>
-                                    </div>
-                                </header>
+                                <header className="flex justify-between items-center"><div className="space-y-1"><p className="text-[10px] text-green-500 font-black uppercase italic tracking-widest leading-none">● Client: {userId}</p><h2 className="text-2xl font-black text-white italic tracking-tighter uppercase font-mono leading-none">Bona_Terminal</h2></div><div className="flex gap-4"><button onClick={()=>setShowSearchModal(true)} className="text-zinc-500 hover:text-[#CA8A04]"><Icon name="search" size={18} /></button><button onClick={() => { localStorage.removeItem('bona_pro_license'); window.location.reload(); }} className="text-zinc-800 hover:text-red-500"><Icon name="log-out" size={18} /></button></div></header>
                                 
                                 <div className="bg-zinc-900/50 rounded-2xl p-4 border border-white/5 flex items-center justify-between"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-[#CA8A04]"><Icon name="database" size={18} /></div><div><p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Storage Used</p><p className="text-xs font-black text-white font-mono">{usageStats.current} / {usageStats.limit} <span className="text-[8px] text-zinc-600 ml-1">ENTRIES</span></p></div></div><div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden"><div className="h-full bg-[#CA8A04]" style={{ width: `${(usageStats.current/usageStats.limit)*100}%` }}></div></div></div>
                                 
@@ -426,8 +441,7 @@
                                 <div className="glass-card p-7 rounded-[2.8rem] border border-white/5 space-y-6 shadow-xl mx-2">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-1"><label className="text-[8px] text-zinc-500 font-black uppercase italic tracking-widest">System Master ID</label><div className="text-3xl font-black text-white italic tracking-tighter font-mono">{bonaID}</div><button onClick={() => setShowPrintModal(true)} className="flex items-center gap-2 text-[10px] text-[#CA8A04] font-black uppercase mt-3 py-2 px-4 bg-[#CA8A04]/10 rounded-full border border-[#CA8A04]/20 active:scale-95 transition-all"><Icon name="printer" size={14} /> 產生列印標籤</button></div>
-                                        {/* 重置按鈕 */}
-                                        <button onClick={() => { setScannedID(null); setSerial(Math.floor(Math.random() * 900) + 100); }} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
+                                        <button onClick={() => setSerial(Math.floor(Math.random() * 900) + 100)} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6">
                                         <div className="space-y-1"><label className="text-[9px] text-[#CA8A04] font-black uppercase italic ml-1">★ 挖出日期</label><input type="date" value={entry.hatchDate} onChange={e=>setEntry({...entry, hatchDate: e.target.value})} className="gold-glow" /></div>
