@@ -102,7 +102,10 @@
                     <img src="logo.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="w-full h-full object-cover">
                     <i class="fa-solid fa-bug text-bona-gold text-xs hidden"></i>
                 </div>
-                <span class="font-bold text-lg tracking-wide">BONA<span class="text-bona-gold">SYSTEMS</span></span>
+                <div class="flex flex-col">
+                    <span class="font-bold text-lg tracking-wide leading-tight">BONA<span class="text-bona-gold">SYSTEMS</span></span>
+                    <span class="text-[10px] text-gray-500 font-mono" id="dashboard-license-display">--</span>
+                </div>
             </div>
             <button onclick="logout()" class="text-bona-muted hover:text-white transition-colors p-2">
                 <i class="fa-solid fa-power-off text-lg"></i>
@@ -234,7 +237,7 @@
         </div>
     </div>
 
-    <!-- MODALS (Update & New Entry) -->
+    <!-- MODALS -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2"><i class="fa-solid fa-times text-xl"></i></button>
@@ -310,6 +313,7 @@
             if (currentUser) {
                 switchView('dashboard');
                 document.getElementById('login-license').value = currentUser;
+                updateDashboardLicense(currentUser);
             } else {
                 switchView('login');
             }
@@ -341,11 +345,17 @@
             if (viewName !== 'view-scanner') target.classList.add('flex');
         }
 
+        function updateDashboardLicense(key) {
+            const display = key.length > 8 ? key.substring(0, 4) + '****' + key.substring(key.length - 4) : key;
+            document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`;
+        }
+
         function handleLogin() {
             const key = document.getElementById('login-license').value.trim();
             if (key) {
                 currentUser = key;
                 localStorage.setItem('bona_user_key', key);
+                updateDashboardLicense(key);
                 showNotification('系統啟動成功', 'success');
                 switchView('dashboard');
             } else {
@@ -358,13 +368,14 @@
             location.reload();
         }
         async function handleManualSearch() {
-            // Force Uppercase
+            if (!currentUser) return showNotification('請先登入', 'error');
             const id = document.getElementById('search-id').value.trim().toUpperCase();
             if (!id) return showNotification('請輸入編號', 'error');
             await fetchBeetleData(id);
         }
 
         async function fetchBeetleData(id) {
+            if (!currentUser) return showNotification('請先登入', 'error');
             showLoading(true);
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -375,7 +386,6 @@
 
                 let data;
                 const text = await response.text();
-                // DEBUGGING LOG
                 console.log("Raw Response:", text);
 
                 try {
@@ -398,8 +408,7 @@
                         switchView('detail');
                         document.getElementById('search-id').value = '';
                     } else {
-                        // Empty Array or Object - Diagnosis Code: 404-EMPTY
-                        showNotification(`找不到編號: ${id} (資料庫無此資料)`, 'error');
+                        showNotification(`找不到編號: ${id} (或無權限)`, 'error');
                     }
                 } else {
                     showNotification(`找不到編號: ${id}`, 'error');
@@ -458,6 +467,7 @@
 
         async function handleUpdateSubmit(e) {
             e.preventDefault();
+            if (!currentUser) return showNotification('請先登入', 'error');
             closeUpdateModal();
             showLoading(true);
             const id = document.getElementById('update-id').value;
@@ -488,6 +498,7 @@
 
         async function handleNewEntrySubmit(e) {
             e.preventDefault();
+            if (!currentUser) return showNotification('請先登入', 'error');
             closeNewEntryModal();
             showLoading(true);
             const fullId = updateIDPreview();
@@ -515,10 +526,7 @@
                 });
                 if (response.ok) {
                     showNotification(`錄入成功: ${fullId}`, 'success');
-                    setTimeout(async () => { 
-                        await fetchBeetleData(fullId); 
-                        setTimeout(() => openQRModal(fullId), 500); 
-                    }, 3000);
+                    setTimeout(async () => { await fetchBeetleData(fullId); setTimeout(() => openQRModal(fullId), 500); }, 3000);
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { console.error(error); showNotification('錄入完成', 'success'); } finally { showLoading(false); }
         }
@@ -541,7 +549,6 @@
                 html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => {
                     html5QrcodeScanner.stop().then(() => { 
                         closeScanner();
-                        // --- SCANNER FIX V44.3 ---
                         let cleanId = decodedText.trim().toUpperCase();
                         if (cleanId.includes('/') || cleanId.includes('HTTP')) {
                             const parts = cleanId.split('/');
@@ -571,7 +578,7 @@
         function showNotification(msg, type) {
             const area = document.getElementById('notification-area');
             const el = document.createElement('div');
-            el.className = `${type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-gray-700')} text-white px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center justify-center transform transition-all duration-300 translate-y-[-20px] opacity-0`;
+            el.className = `${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center justify-center transform transition-all duration-300 translate-y-[-20px] opacity-0`;
             el.innerText = msg;
             area.appendChild(el);
             requestAnimationFrame(() => el.classList.remove('translate-y-[-20px]', 'opacity-0'));
