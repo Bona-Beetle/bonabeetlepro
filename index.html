@@ -164,7 +164,8 @@
                 <div class="text-3xl font-bold text-white font-mono mb-2" id="d-id">--</div>
                 <div class="flex space-x-6 text-sm text-gray-400">
                     <span><i class="fa-solid fa-dna text-bona-gold mr-1"></i> 累代: <span id="d-gen">--</span></span>
-                    <span><i class="fa-solid fa-calendar text-bona-gold mr-1"></i> 羽化: <span id="d-hatch">--</span></span>
+                    <!-- 修正: 顯示為孵化日 -->
+                    <span><i class="fa-solid fa-calendar text-bona-gold mr-1"></i> 孵化: <span id="d-hatch">--</span></span>
                 </div>
             </div>
             <!-- Stats Grid -->
@@ -206,26 +207,39 @@
         </div>
     </div>
 
-    <!-- UPDATE MODAL -->
+    <!-- UPDATE MODAL (Full Fields) -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2"><i class="fa-solid fa-times text-xl"></i></button>
             <h3 class="text-xl font-bold text-bona-gold mb-6 tracking-wide border-b border-gray-800 pb-4">更新數據</h3>
             <form id="form-update" onsubmit="handleUpdateSubmit(event)" class="space-y-6">
                 <input type="hidden" id="update-id">
-                <div><label class="block text-sm text-gray-400 uppercase mb-2 font-bold">最新體重 (g)</label><input type="number" step="0.1" id="update-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
+                
+                <div>
+                    <label class="block text-sm text-gray-400 uppercase mb-2 font-bold">最新體重 (g)</label>
+                    <input type="number" step="0.1" id="update-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required>
+                </div>
+
                 <div class="grid grid-cols-2 gap-5">
                      <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="update-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
                      <div><label class="block text-xs text-gray-500 uppercase mb-1">容器容量</label><select id="update-box-vol" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="100-150ml">100-150ml</option><option value="500ml">500ml</option><option value="700-800ml">700-800ml</option><option value="1000ml">1000ml</option><option value="1400-1500ml">1400-1500ml</option><option value="2200-2300ml">2200-2300ml</option><option value="3200-3500ml">3200-3500ml</option><option value="4L">4L</option><option value="6L">6L</option><option value="10L">10L</option></select></div>
                 </div>
+
                 <div class="space-y-4">
-                    <div><label class="block text-xs text-gray-500 uppercase mb-1">更換食材 (主)</label><select id="update-sub" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
+                    <div>
+                        <label class="block text-xs text-gray-500 uppercase mb-1">更換食材 (主)</label>
+                        <select id="update-sub" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select>
+                    </div>
+                    
                     <div class="grid grid-cols-2 gap-5">
                         <div><label class="block text-xs text-gray-500 uppercase mb-1">副食材</label><select id="update-sub-sec" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="無">無</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
                         <div><label class="block text-xs text-gray-500 uppercase mb-1">添加劑</label><select id="update-booster" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="None">維持不變</option><option value="無添加">無添加</option><option value="10g/10L">10g/10L</option><option value="20g/10L">20g/10L</option><option value="極限組">極限組</option></select></div>
                     </div>
                 </div>
-                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">確認更新</button>
+
+                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">
+                    確認更新
+                </button>
             </form>
         </div>
     </div>
@@ -248,7 +262,7 @@
                     <div class="text-center font-mono text-xl font-bold text-white tracking-widest bg-black py-3 rounded border border-bona-gold/30" id="id-preview">D-24-01-001</div>
                 </div>
                 <!-- Dates -->
-                <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">羽化/孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
+                <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
                 <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
                 <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
                 <div class="space-y-4 pt-2 border-t border-gray-800">
@@ -269,7 +283,7 @@
         </div>
     </div>
 
-    <!-- UPGRADE MODAL -->
+    <!-- UPGRADE MODAL, QR MODAL - Same as before -->
     <div id="modal-upgrade" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
         <div class="w-full max-w-sm text-center relative">
             <i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i>
@@ -279,7 +293,6 @@
         </div>
     </div>
 
-    <!-- QR Modal -->
     <div id="modal-qr" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl">
             <button onclick="closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
@@ -297,7 +310,6 @@
         let html5QrcodeScanner = null;
         let currentDetailData = null;
 
-        // 1. Define switchView FIRST (Critical Fix)
         function switchView(viewName) {
             ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
@@ -308,7 +320,6 @@
             if (viewName !== 'view-scanner') target.classList.add('flex');
         }
 
-        // 2. Define other UI Helpers
         function showLoading(show) { 
             const el = document.getElementById('loading-overlay');
             if(show) { el.classList.remove('hidden'); el.classList.add('flex'); }
@@ -349,7 +360,6 @@
             else bar.className = 'quota-bar h-full bg-bona-gold';
         }
 
-        // 3. Document Ready Listener
         document.addEventListener('DOMContentLoaded', () => {
             if (currentUser) {
                 verifyLicense(currentUser, true);
@@ -495,12 +505,23 @@
             await verifyLicense(key, false);
         }
 
+        // --- STRICT AUTH LOGIC (No Mocks) ---
         async function verifyLicense(key, silent) {
             if (!silent) showLoading(true);
             try {
-                // Mock Auth
-                const data = { valid: true, max: 50, used: 0 }; 
-                if (data.valid) {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'auth', userId: key })
+                });
+                
+                const text = await response.text();
+                let data = {};
+                try { data = JSON.parse(text); } catch(e) {}
+                if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
+
+                // Strict check: key_found must exist and status must be Active
+                if (data && data.key_found && data.status === 'Active') {
                     currentUser = key;
                     localStorage.setItem('bona_user_key', key);
                     quotaInfo = { max: data.max || 50, used: data.used || 0 };
@@ -508,14 +529,16 @@
                     if (!silent) showNotification('登入成功', 'success');
                     switchView('dashboard');
                 } else {
-                    if (!silent) showNotification('授權無效', 'error'); else logout();
+                    if (!silent) showNotification('授權無效：查無此號或已停用', 'error');
+                    else logout();
                 }
             } catch (error) {
-                if (!silent) showNotification('驗證失敗', 'error');
-                currentUser = key;
-                updateDashboardUI();
-                switchView('dashboard');
-            } finally { if (!silent) showLoading(false); }
+                console.error("Auth Error", error);
+                if (!silent) showNotification('連線驗證伺服器失敗，請檢查網路', 'error');
+                // Strict mode: Do not login on error
+            } finally {
+                if (!silent) showLoading(false);
+            }
         }
 
         function showNewEntryForm() {
