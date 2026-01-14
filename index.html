@@ -374,13 +374,11 @@
             await fetchBeetleData(id);
         }
 
-        // --- CORE UPDATE V45.0 (Crash Protection & Normalization) ---
+        // --- CORE UPDATE V45.1 (SMART PARSER) ---
         async function fetchBeetleData(id) {
             if (!currentUser) return showNotification('請先登入', 'error');
             showLoading(true);
             try {
-                console.log("Sending Query:", { type: 'query', id: id, userId: currentUser });
-
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -388,6 +386,7 @@
                 });
 
                 const text = await response.text();
+                // DEBUG LOG
                 console.log("Raw Response:", text);
 
                 let data;
@@ -397,7 +396,18 @@
                     throw new Error(`非 JSON 格式回應: ${text.substring(0, 50)}...`);
                 }
 
-                // 1. Helper to normalize keys to lowercase (handles ID vs id)
+                // --- SMART UNWRAP LOGIC ---
+                // 1. Unwrap 'json' key if exists (Make.com Aggregate artifact)
+                if (data.json) {
+                    console.log("Unwrapping 'json' key...");
+                    try {
+                        data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json;
+                    } catch(e) {
+                        console.warn("Unwrap failed, using raw:", e);
+                    }
+                }
+
+                // 2. Normalize Keys
                 const normalize = (obj) => {
                     if (!obj || typeof obj !== 'object') return obj;
                     const newObj = {};
@@ -405,49 +415,38 @@
                     return newObj;
                 };
 
-                // 2. Unpack Data (Smart Parser)
-                let targetRecord = null;
-                let targetHistory = [];
+                // 3. Find Data in potential wrappers
                 let rawList = [];
-
-                if (Array.isArray(data)) rawList = data;
-                else if (typeof data === 'object' && data !== null) {
-                    if (data.id || data.ID) { // Direct object check
+                if (Array.isArray(data)) {
+                    rawList = data;
+                } else if (typeof data === 'object' && data !== null) {
+                    if (data.id || data.ID) {
                         rawList = [data];
                     } else if (data.body || data.data || data.items) {
                         const inner = data.body || data.data || data.items;
-                        if (Array.isArray(inner)) rawList = inner;
-                        else rawList = [inner];
+                        rawList = Array.isArray(inner) ? inner : [inner];
                     }
                 }
 
-                // 3. Find valid record in list
+                // 4. Validate & Render
                 if (rawList.length > 0) {
-                    // Check first item
-                    const firstItem = normalize(rawList[0]);
-                    if (firstItem.id) {
-                        targetRecord = firstItem;
-                        // Normalize all history items
-                        targetHistory = rawList.map(item => normalize(item));
-                    }
-                }
-
-                // 4. Execute Logic with Try-Catch Safety
-                if (targetRecord && targetRecord.id) {
-                    console.log(">> 準備跳轉至 Detail View (ID found)");
-                    try {
-                        currentDetailData = targetRecord;
-                        populateDetailView(targetRecord);
-                        renderHistoryList(targetHistory);
+                    // Try to find the first valid record (ignore empty/garbage rows from bad aggregation)
+                    const validRecord = rawList.map(normalize).find(r => r.id);
+                    
+                    if (validRecord) {
+                        const allHistory = rawList.map(normalize).filter(r => r.id); // Filter only valid
+                        currentDetailData = validRecord;
+                        populateDetailView(validRecord);
+                        renderHistoryList(allHistory);
                         switchView('detail');
                         document.getElementById('search-id').value = '';
-                    } catch (renderError) {
-                        console.error("Render Error:", renderError);
-                        showNotification(`渲染錯誤 (資料缺損?): ${renderError.message}`, 'error');
+                    } else {
+                        // Parsed but no ID found inside
+                        console.error("Data structure found but no valid ID:", rawList);
+                        showNotification(`資料異常 (Make聚合設定錯誤?)`, 'error');
                     }
                 } else {
-                    const debugStr = JSON.stringify(data).substring(0, 50);
-                    showNotification(`找不到資料 (無 ID 欄位): ${debugStr}`, 'error');
+                    showNotification(`找不到資料 (空結果)`, 'error');
                 }
 
             } catch (error) {
@@ -459,7 +458,6 @@
         }
 
         function populateDetailView(data) {
-            // Added safe checks (|| '--') to prevent null crashes
             document.getElementById('detail-header-id').innerText = data.id || 'UNKNOWN';
             document.getElementById('d-id').innerText = data.id || '--';
             document.getElementById('d-gen').innerText = data.generation || 'F1';
@@ -480,14 +478,11 @@
             const container = document.getElementById('history-list');
             const section = document.getElementById('history-section');
             container.innerHTML = '';
-            
-            // If only 1 record (or empty), hide history
             if (!dataArray || dataArray.length <= 1) {
                 section.classList.add('hidden');
                 return;
             }
             section.classList.remove('hidden');
-            
             dataArray.forEach(item => {
                 const el = document.createElement('div');
                 el.className = 'glass-panel p-4 rounded-xl flex justify-between items-center';
@@ -590,6 +585,7 @@
                 html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => {
                     html5QrcodeScanner.stop().then(() => { 
                         closeScanner();
+                        // Scanner Logic
                         let cleanId = decodedText.trim().toUpperCase();
                         if (cleanId.includes('/') || cleanId.includes('HTTP')) {
                             const parts = cleanId.split('/');
