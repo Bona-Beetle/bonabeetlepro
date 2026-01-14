@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bona PRO | 純淨商務終端</title>
+    <title>Bona PRO | 數據綁定終端</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.jpg">
+    <!-- 核心資源庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -25,7 +26,7 @@
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
         input[type="date"], input[type="text"], textarea, select { color-scheme: dark; background: #000; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 14px; font-size: 14px; width: 100%; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         input:focus, textarea:focus, select:focus { border-color: var(--b-gold); box-shadow: 0 0 10px rgba(202, 138, 4, 0.2); }
-        input:disabled { opacity: 0.5; color: #71717a; border-color: rgba(255,255,255,0.05); background: #111; }
+        input:disabled { opacity: 0.6; color: #a1a1aa; border-color: rgba(255,255,255,0.05); background: #111; }
         #reader { width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid rgba(202, 138, 4, 0.3); background: #000; min-height: 300px; }
         .glass-card { background: rgba(24, 24, 27, 0.9); backdrop-blur: 20px; border: 1px solid rgba(255, 255, 255, 0.08); }
         .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -56,9 +57,9 @@
             const [showLoginModal, setShowLoginModal] = useState(!localStorage.getItem('bona_pro_license'));
             const [usageStats, setUsageStats] = useState({ current: 42, limit: 50, plan: 'BASIC' });
             
+            // 核心狀態：檢視中的個體
             const [viewingIndividual, setViewingIndividual] = useState(null);
 
-            // --- 核心 Webhook ---
             const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w";
             const logoUrl = "logo.jpg";
 
@@ -84,8 +85,6 @@
             const handleLogin = () => {
                 if(userId.trim()) {
                     localStorage.setItem('bona_pro_license', userId.trim());
-                    if (userId.toUpperCase().startsWith('VIP')) { setUsageStats({ current: 42, limit: 500, plan: 'PRO' }); } 
-                    else { setUsageStats({ current: 42, limit: 50, plan: 'BASIC' }); }
                     setShowLoginModal(false);
                 }
             };
@@ -97,45 +96,82 @@
                 const first = history[0];
                 const w1 = parseFloat(previous.weight) || 0;
                 const w2 = parseFloat(latest.weight) || 0;
-                const dateDiff = Math.max((new Date(latest.date) - new Date(previous.date)) / (1000 * 60 * 60 * 24), 1);
-                const totalDays = Math.max((new Date(latest.date) - new Date(first.date)) / (1000 * 60 * 60 * 24), 1);
-                return { intervalGain: (weightDiff / dateDiff).toFixed(2), totalAvgGain: (w2 / totalDays).toFixed(2), daysSinceLast: Math.floor(dateDiff) };
+                const d1 = new Date(previous.date);
+                const d2 = new Date(latest.date);
+                const d0 = new Date(first.date);
+                const dateDiff = Math.max((d2 - d1) / (1000 * 60 * 60 * 24), 1);
+                const totalDays = Math.max((d2 - d0) / (1000 * 60 * 60 * 24), 1);
+                return { 
+                    intervalGain: ((w2 - w1) / dateDiff).toFixed(2), 
+                    totalAvgGain: (w2 / totalDays).toFixed(2), 
+                    daysSinceLast: Math.floor(dateDiff) 
+                };
             };
 
+            // --- V39.0 萬能解析器 (容錯率極高) ---
             const parseNotionData = (rawData) => {
                 if (!rawData) return [];
                 let dataToProcess = rawData;
-                if (typeof rawData === 'string') { try { dataToProcess = JSON.parse(rawData); } catch (e) { return []; } }
-                if (dataToProcess && !Array.isArray(dataToProcess) && typeof dataToProcess === 'object') {
+                
+                // 1. 嘗試解析 JSON 字串
+                if (typeof rawData === 'string') {
+                    try { dataToProcess = JSON.parse(rawData); } catch (e) { console.error("JSON parse fail"); return []; }
+                }
+                
+                // 2. 結構正規化
+                if (!Array.isArray(dataToProcess) && typeof dataToProcess === 'object') {
                     if (dataToProcess.raw) dataToProcess = dataToProcess.raw;
                     else if (dataToProcess.results) dataToProcess = dataToProcess.results;
                     else if (dataToProcess.growthHistory) dataToProcess = dataToProcess.growthHistory;
                     else dataToProcess = [dataToProcess];
                 }
+
                 if (!Array.isArray(dataToProcess)) return [];
 
+                // 3. 寬鬆取值策略 (Loose Matching)
                 const getValue = (item, keys) => {
-                    const paths = [
-                        keys, keys.toLowerCase(),
-                        `properties value.${keys}.number`, `properties value.${keys}.select.name`, `properties value.${keys}.rich_text.0.text.content`, `properties value.${keys}.date.start`, `properties value.${keys}.title.0.text.content`,
-                        `properties.${keys}.number`, `properties.${keys}.select.name`, `properties.${keys}.rich_text.0.text.content`, `properties.${keys}.date.start`, `properties.${keys}.title.0.text.content`
-                    ];
-                    for (let path of paths) {
-                        const val = path.split('.').reduce((acc, part) => acc && acc[part], item);
-                        if (val !== undefined && val !== null) return val;
+                    // 自動產生大小寫組合，例如 Sire_Size, sire_size, Sire, sire
+                    const variants = Array.isArray(keys) ? keys : [keys];
+                    const allKeys = [];
+                    variants.forEach(k => {
+                        allKeys.push(k);
+                        allKeys.push(k.toLowerCase());
+                        allKeys.push(k.toUpperCase());
+                        allKeys.push(k.replace('_', ''));
+                    });
+
+                    // 遍歷所有可能的路徑
+                    for (let key of allKeys) {
+                        const paths = [
+                            key,
+                            `properties value.${key}.number`, 
+                            `properties value.${key}.select.name`, 
+                            `properties value.${key}.rich_text.0.text.content`, 
+                            `properties value.${key}.date.start`,
+                            `properties value.${key}.title.0.text.content`,
+                            `properties.${key}.number`, 
+                            `properties.${key}.select.name`, 
+                            `properties.${key}.rich_text.0.text.content`, 
+                            `properties.${key}.date.start`, 
+                            `properties.${key}.title.0.text.content`
+                        ];
+                        for (let path of paths) {
+                            const val = path.split('.').reduce((acc, part) => acc && acc[part], item);
+                            if (val !== undefined && val !== null && val !== "") return val;
+                        }
                     }
                     return null;
                 };
 
                 return dataToProcess.map(item => ({
-                    date: getValue(item, 'Date_Check') || getValue(item, 'date'),
-                    weight: getValue(item, 'Weight') || getValue(item, 'weight') || 0,
-                    sub: getValue(item, 'Sub_Main') || getValue(item, 'sub') || '無紀錄',
-                    box: getValue(item, 'Box_Vol') || getValue(item, 'box') || '無紀錄',
-                    sire: getValue(item, 'Sire_Size') || getValue(item, 'sire') || '-',
-                    dam: getValue(item, 'Dam_Size') || getValue(item, 'dam') || '-',
-                    gen: getValue(item, 'Generation') || getValue(item, 'gen') || '-',
-                    hatch: getValue(item, 'Date_Hatch') || getValue(item, 'hatch')
+                    date: getValue(item, ['Date_Check', 'date']),
+                    weight: getValue(item, ['Weight', 'weight']) || 0,
+                    sub: getValue(item, ['Sub_Main', 'sub']) || '無紀錄',
+                    box: getValue(item, ['Box_Vol', 'box']) || '無紀錄',
+                    sire: getValue(item, ['Sire_Size', 'sire']) || '-',
+                    dam: getValue(item, ['Dam_Size', 'dam']) || '-',
+                    gen: getValue(item, ['Generation', 'gen']) || '-',
+                    hatch: getValue(item, ['Date_Hatch', 'hatch'])
                 })).filter(i => i.date);
             };
 
@@ -151,16 +187,25 @@
                     if (!res.ok) throw new Error("Connection Error");
                     const responseBody = await res.json();
                     
+                    // 強制解析
                     let history = parseNotionData(responseBody.raw || responseBody);
+                    
                     if (history.length === 0) throw new Error("No Data Found");
 
                     history.sort((a, b) => new Date(a.date) - new Date(b.date));
                     const latest = history[history.length - 1];
-                    const first = history[0];
+                    
+                    // 尋找最早的一筆有效親代資料
+                    const firstWithGen = history.find(h => h.gen !== '-') || history[0];
+                    const firstWithSire = history.find(h => h.sire !== '-') || history[0];
+                    const firstWithDam = history.find(h => h.dam !== '-') || history[0];
+                    const firstWithHatch = history.find(h => h.hatch) || history[0];
                     
                     const meta = { 
-                        sire: first.sire || '-', dam: first.dam || '-', 
-                        gen: first.gen || '-', hatch: first.hatch || entry.hatchDate 
+                        sire: firstWithSire.sire, 
+                        dam: firstWithDam.dam, 
+                        gen: firstWithGen.gen, 
+                        hatch: firstWithHatch.hatch || entry.hatchDate 
                     };
 
                     setViewingIndividual({
@@ -170,14 +215,19 @@
                         growthHistory: history, metrics: calculateMetrics(history)
                     });
                     
-                    // 預填更新表單
-                    setEntry(prev => ({ ...prev, subMain: latest.sub !== '無紀錄' ? latest.sub : prev.subMain }));
+                    // 預填更新表單 (方便用戶不用重選)
+                    setEntry(prev => ({
+                        ...prev,
+                        subMain: latest.sub !== '無紀錄' ? latest.sub : prev.subMain,
+                        // 這裡可以加入更多預填邏輯
+                    }));
 
                     setScannedID(id); setLoading(false); setActiveTab('detail');
 
                 } catch (e) { 
                     setLoading(false); 
-                    console.log("Entering Recovery Mode:", e);
+                    // 查無資料 -> 進入【補登模式】
+                    console.log("Entering New Entry Mode:", e);
                     setViewingIndividual(null); 
                     setScannedID(id); 
                     setActiveTab('entry'); 
@@ -203,25 +253,20 @@
                 return () => { if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop(); };
             }, [isScanning]);
 
-            // --- 核心同步邏輯 (重要修復) ---
+            // --- 同步邏輯修復 ---
             const handleSync = async (submissionType = 'growth') => {
-                if (submissionType === 'growth') {
-                    if (!entry.weight) return;
-                    if (!viewingIndividual && usageStats.current >= usageStats.limit) { setShowUpgradeModal(true); return; }
-                }
+                if (!entry.weight) return alert("請輸入體重");
                 setLoading(true);
                 try {
-                    // mode: 如果有 viewingIndividual (代表檢視中)，則為 update，否則為 new (新命/補登)
                     const currentMode = viewingIndividual ? 'update' : 'new';
                     
                     const payload = { 
-                        type: 'growth',  // 強制固定為 growth
+                        type: 'growth', 
                         license: userId,
                         id: bonaID, 
                         mode: currentMode,
-                        // 強制轉數字與字串，防止格式錯誤
                         weight: parseFloat(entry.weight), 
-                        checkDate: entry.checkDate,
+                        checkDate: entry.checkDate, // ★ 新增：這裡會傳送用戶選擇的日期
                         hatchDate: entry.hatchDate,
                         subMain: entry.subMain,
                         subSecondary: entry.subSecondary,
@@ -237,7 +282,6 @@
                     const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (res.ok) {
                         setSaveStatus('success');
-                        if (!viewingIndividual) setUsageStats(prev => ({ ...prev, current: prev.current + 1 }));
                         setTimeout(() => { 
                             setSaveStatus('idle'); setLoading(false); setActiveTab('home'); 
                             setViewingIndividual(null); setScannedID(null); setEntry(prev => ({...prev, weight: ''})); 
@@ -249,7 +293,7 @@
             const PrintTagModal = () => (
                 <div className="fixed inset-0 z-[2500] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-slide-up">
                     <div className="bg-white text-black p-8 rounded-2xl w-full max-w-[300px] text-center shadow-2xl space-y-4">
-                        <div className="flex justify-between items-center border-b border-gray-100 pb-2"><span className="text-[10px] font-black uppercase text-gray-400">Bona Official Label</span><span className="text-[10px] font-bold text-gray-400">{entry.checkDate}</span></div>
+                        <div className="flex justify-between items-center border-b border-gray-100 pb-2"><span className="text-[10px] font-black uppercase text-gray-400">Bona Label</span><span className="text-[10px] font-bold text-gray-400">{entry.checkDate}</span></div>
                         <img src={qrUrl} className="w-48 h-48 mx-auto" alt="QR" />
                         <div className="space-y-1"><div className="text-3xl font-black font-mono tracking-tighter">{bonaID}</div><div className="text-[9px] font-bold text-gray-400 uppercase italic">Smart Tracking Asset</div></div>
                         <div className="grid grid-cols-2 gap-2 text-[8px] font-bold border-t border-gray-100 pt-3 text-left"><div><span className="text-gray-400 uppercase">SUB:</span> {entry.subMain}</div><div><span className="text-gray-400 uppercase">HATCH:</span> {entry.hatchDate}</div></div>
@@ -275,7 +319,7 @@
                         <div className="relative z-10 flex justify-between items-end mb-6"><div><p className="text-[9px] text-zinc-500 font-black uppercase italic mb-1 leading-none">Mass Index</p><div className="text-6xl font-black text-white italic font-mono leading-none">{data.currentWeight}<span className="text-xs ml-1 text-[#CA8A04]">G</span></div></div><div className="text-right"><div className="flex items-center justify-end gap-1 text-green-500 mb-1"><Icon name="trending-up" size={12} /><span className="text-[9px] font-black uppercase italic tracking-tighter">Daily Gain</span></div><div className="text-2xl font-black text-white font-mono italic leading-none">+{data.metrics.intervalGain}<span className="text-[10px] ml-1 uppercase text-zinc-600">g/d</span></div></div></div>
                         <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6 text-[10px] font-black uppercase italic text-zinc-500"><div>總平均: <span className="text-zinc-200 font-mono">+{data.metrics.totalAvgGain}</span></div><div className="text-right">天數: <span className="text-zinc-200 font-mono">{data.metrics.daysSinceLast}</span></div></div>
                     </div>
-                    {/* 血統 (唯讀) */}
+                    {/* 血統 (從檢索結果中讀取，不可修改) */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♂</label><p className="text-xs font-black text-white italic font-mono">{data.parentMaleSize}</p></div>
                         <div className="bg-zinc-900/50 p-5 rounded-[2rem] border border-white/5"><label className="text-[8px] text-zinc-500 font-black uppercase block mb-1">Parent ♀</label><p className="text-xs font-black text-white italic font-mono">{data.parentFemaleSize}</p></div>
@@ -285,14 +329,18 @@
                         <div className="bg-zinc-800/30 px-6 py-4 border-b border-white/5 flex items-center gap-2"><Icon name="history" size={16} color="#CA8A04" /><span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">Timeline</span></div>
                         <div className="p-4 space-y-4">{data.growthHistory.slice().reverse().map((h, i) => (<div key={i} className="flex justify-between items-center text-[10px] font-mono border-b border-white/5 pb-2 last:border-0"><span className="text-zinc-500">{h.date}</span><span className="text-zinc-200 font-bold">{h.weight}g</span><span className="text-[#CA8A04]/50">{h.sub}</span></div>))}</div>
                     </div>
+                    {/* 掃描後的更新表單 */}
                     <div className="bg-[#18181B] p-8 rounded-[3.5rem] border border-[#CA8A04]/20 space-y-8 shadow-2xl">
                         <div className="text-center">
                             <p className="text-[10px] text-[#CA8A04] font-black uppercase mb-1 tracking-widest italic font-mono">Log Today's Weight</p>
-                            {/* 修復：體重欄位防止爆版 */}
                             <input type="number" placeholder="0.00" value={entry.weight} onChange={e=>setEntry({...entry, weight: e.target.value})} className="bg-transparent text-5xl font-black text-white text-center outline-none w-40 mx-auto italic tabular-nums placeholder:text-zinc-900 border-b border-transparent focus:border-[#CA8A04] transition-all" />
                         </div>
                         <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-3"><input type="date" value={entry.checkDate} onChange={e=>setEntry({...entry, checkDate: e.target.value})} /><select value={entry.booster} onChange={e=>setEntry({...entry, booster: e.target.value})} className="font-bold">{["無添加", "10g/10L", "20g/10L", "極限組"].map(opt => <option key={opt}>{opt}</option>)}</select></div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {/* ★ 修復：加入日期選單，讓用戶可以修改量測日期 */}
+                                <div><label className="text-[9px] text-zinc-500 font-black uppercase ml-1 italic">Date</label><input type="date" value={entry.checkDate} onChange={e=>setEntry({...entry, checkDate: e.target.value})} /></div>
+                                <div><label className="text-[9px] text-zinc-500 font-black uppercase ml-1 italic">Booster</label><select value={entry.booster} onChange={e=>setEntry({...entry, booster: e.target.value})} className="font-bold">{["無添加", "10g/10L", "20g/10L", "極限組"].map(opt => <option key={opt}>{opt}</option>)}</select></div>
+                            </div>
                             <div className="grid grid-cols-2 gap-3"><select value={entry.subMain} onChange={e=>setEntry({...entry, subMain: e.target.value})} className="font-bold">{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select><select value={entry.subSecondary} onChange={e=>setEntry({...entry, subSecondary: e.target.value})} className="font-bold italic"><option value="無">無</option>{SUBSTRATES.map(opt => <option key={opt}>{opt}</option>)}</select></div>
                             <div className="grid grid-cols-2 gap-3"><select value={entry.containerType} onChange={e=>setEntry({...entry, containerType: e.target.value})} className="font-bold">{CONTAINERS.map(opt => <option key={opt}>{opt}</option>)}</select><select value={entry.containerVolume} onChange={e=>setEntry({...entry, containerVolume: e.target.value})} className="font-bold">{VOLUMES.map(opt => <option key={opt}>{opt}</option>)}</select></div>
                         </div>
@@ -304,7 +352,7 @@
             if (showLoginModal) return (
                 <div className="h-screen w-full flex items-center justify-center p-8 bg-black z-[3000]">
                     <div className="glass-card p-10 rounded-[3rem] w-full max-w-sm space-y-8 text-center animate-slide-up border border-[#CA8A04]/30">
-                        <div className="space-y-4"><img src={logoUrl} className="w-20 h-20 mx-auto rounded-2xl border border-white/5 shadow-2xl" /><h2 className="text-2xl font-black italic text-white uppercase tracking-tighter">Bona Terminal</h2></div>
+                        <div className="space-y-4"><img src={logoUrl} onError={(e) => {e.target.src = "https://via.placeholder.com/150?text=Bona"}} className="w-20 h-20 mx-auto rounded-2xl border border-white/5 shadow-2xl" /><h2 className="text-2xl font-black italic text-white uppercase tracking-tighter">Bona Terminal</h2></div>
                         <input type="text" placeholder="ENTER LICENSE KEY" value={userId} onChange={e=>setUserId(e.target.value)} className="text-center font-mono text-[#CA8A04] text-lg uppercase tracking-widest placeholder:text-zinc-800" />
                         <button onClick={handleLogin} className="w-full bg-[#CA8A04] text-black font-black py-5 rounded-2xl text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-[0_10px_30px_rgba(202,138,4,0.3)]">激活系統授權</button>
                     </div>
@@ -313,8 +361,8 @@
 
             if (!hasStarted) return (
                 <div className="h-screen w-full flex flex-col items-center justify-center p-8 bg-black animate-slide-up">
-                    <img src={logoUrl} className="w-24 h-24 border-2 border-[#CA8A04] p-1 bg-black rounded-3xl shadow-2xl z-10" />
-                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V38.0</p></div>
+                    <img src={logoUrl} onError={(e) => {e.target.src = "https://via.placeholder.com/150?text=Bona"}} className="w-24 h-24 border-2 border-[#CA8A04] p-1 bg-black rounded-3xl shadow-2xl z-10" />
+                    <div className="text-center space-y-2 mt-8"><h1 className="text-4xl font-black italic text-white tracking-tighter uppercase font-mono leading-none">Bona <span className="text-[#CA8A04]">Command</span></h1><p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold italic tracking-widest">Multi-Client Platform V39.0</p></div>
                     <button onClick={() => setHasStarted(true)} className="w-full max-w-xs bg-gradient-to-r from-yellow-700 via-[#CA8A04] to-yellow-700 text-black font-black py-6 rounded-3xl text-[11px] uppercase tracking-[0.3em] shadow-2xl mt-12 active:scale-95 transition-all">連線終端</button>
                 </div>
             );
@@ -324,7 +372,7 @@
                     <div className="bg-blueprint"></div>
                     {(loading || saveStatus !== 'idle') && (
                         <div className="fixed inset-0 bg-black/95 z-[1500] flex flex-col items-center justify-center backdrop-blur-md">
-                            {loading && <div className="flex flex-col items-center relative h-64 w-64"><div className="scan-line"></div><div className="w-32 h-32 border-2 border-[#CA8A04]/20 rounded-3xl flex items-center justify-center relative"><Icon name="search" size={48} color="#CA8A04" className="animate-pulse" /></div><p className="text-[10px] text-[#CA8A04] font-mono tracking-[0.5em] animate-pulse uppercase mt-8 italic text-center">Processing...</p></div>}
+                            {loading && <div className="flex flex-col items-center relative h-64 w-64"><div className="scan-line"></div><div className="w-32 h-32 border-2 border-[#CA8A04]/20 rounded-3xl flex items-center justify-center relative"><Icon name="search" size={48} color="#CA8A04" className="animate-pulse" /></div><p className="text-[10px] text-[#CA8A04] font-mono tracking-[0.5em] animate-pulse uppercase mt-8 italic text-center">Identifying_Genetic_Profile...</p></div>}
                             {saveStatus === 'success' && <div className="flex flex-col items-center animate-slide-up"><Icon name="shield-check" size={80} color="#22C55E" className="mb-6 animate-bounce" /><h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Sync Successful</h3></div>}
                             {saveStatus === 'error' && <div className="flex flex-col items-center animate-slide-up"><Icon name="alert-triangle" size={80} color="#EF4444" className="mb-6" /><h3 className="text-xl font-black text-white italic uppercase tracking-tighter">{errorMsg || "Error Occurred"}</h3><button onClick={()=>setSaveStatus('idle')} className="mt-4 bg-zinc-800 text-white px-6 py-2 rounded-lg text-xs">Close</button></div>}
                         </div>
@@ -355,8 +403,7 @@
                                 <div className="glass-card p-7 rounded-[2.8rem] border border-white/5 space-y-6 shadow-xl mx-2">
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-1"><label className="text-[8px] text-zinc-500 font-black uppercase italic tracking-widest">System Master ID</label><div className="text-3xl font-black text-white italic tracking-tighter font-mono">{bonaID}</div><button onClick={() => setShowPrintModal(true)} className="flex items-center gap-2 text-[10px] text-[#CA8A04] font-black uppercase mt-3 py-2 px-4 bg-[#CA8A04]/10 rounded-full border border-[#CA8A04]/20 active:scale-95 transition-all"><Icon name="printer" size={14} /> 產生列印標籤</button></div>
-                                        {/* 重置按鈕：讓掃描進入的補登模式也可以刷新 ID */}
-                                        <button onClick={() => { setScannedID(null); setSerial(Math.floor(Math.random() * 900) + 100); }} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
+                                        <button onClick={() => setSerial(Math.floor(Math.random() * 900) + 100)} className="text-[#CA8A04] p-3 bg-zinc-800/50 rounded-2xl active:rotate-180 transition-transform"><Icon name="refresh-cw" size={18} /></button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6">
                                         <div className="space-y-1"><label className="text-[9px] text-[#CA8A04] font-black uppercase italic ml-1">★ 挖出日期</label><input type="date" value={entry.hatchDate} onChange={e=>setEntry({...entry, hatchDate: e.target.value})} className="gold-glow" /></div>
