@@ -148,7 +148,7 @@
     <!-- DETAIL VIEW -->
     <div id="view-detail" class="hidden flex-col h-screen w-full max-w-md mx-auto bg-bona-black">
         <header class="flex justify-between items-center p-4 border-b border-gray-800 bg-bona-card shrink-0">
-            <button type="button" onclick="showDashboard()" class="text-gray-400 hover:text-white p-3 z-50 rounded-full hover:bg-white/10 transition-all">
+            <button onclick="showDashboard()" class="text-gray-400 hover:text-white p-3 z-50 rounded-full hover:bg-white/10 transition-all">
                 <i class="fa-solid fa-arrow-left text-2xl"></i>
             </button>
             <span class="font-bold text-lg tracking-wide text-bona-gold" id="detail-header-id">讀取中...</span>
@@ -513,7 +513,7 @@
             }
         }
 
-        // --- FETCH & DATA HANDLING ---
+        // --- FETCH & DATA HANDLING (v48.6 Fixes) ---
         function consolidateData(rawList) {
             let final = { ...rawList[0] }; 
             const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; };
@@ -677,6 +677,7 @@
         function closeUpdateModal() { document.getElementById('modal-update').classList.add('hidden'); }
         function showNewEntryForm() { if (quotaInfo.used >= quotaInfo.max) { document.getElementById('modal-upgrade').classList.remove('hidden'); return; } document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; updateIDPreview(); const lastSeq = localStorage.getItem('last_seq'); if (lastSeq) { const nextSeq = parseInt(lastSeq) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); updateIDPreview(); } document.getElementById('modal-new-entry').classList.remove('hidden'); }
         
+        // --- v49.1 FIX: Send FULL payload even for New Entry ---
         async function handleUpdateSubmit(e) {
             e.preventDefault();
             // GUARD
@@ -708,8 +709,14 @@
             }
 
             const payload = {
-                type: 'growth', mode: 'update', id: id, userId: targetUser, // Use Real ID here
-                weight: parseFloat(weight), date_check: checkDate,
+                type: 'growth', mode: 'update', id: id, userId: targetUser,
+                weight: parseFloat(weight), 
+                date_check: checkDate, // v49.1 Ensure date is sent
+                // Full inheritance payload
+                date_hatch: currentDetailData ? cleanData(currentDetailData.date_hatch) : '', // Inherit hatch date
+                generation: currentDetailData ? cleanData(currentDetailData.generation) : '',
+                sire_size: currentDetailData ? cleanData(currentDetailData.sire_size) : '',
+                dam_size: currentDetailData ? cleanData(currentDetailData.dam_size) : '',
                 sub_main: sub, sub_sec: subSec, box_type: boxType, box_vol: boxVol, booster: booster
             };
 
