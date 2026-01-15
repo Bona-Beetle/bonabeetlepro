@@ -148,9 +148,11 @@
     <!-- DETAIL VIEW -->
     <div id="view-detail" class="hidden flex-col h-screen w-full max-w-md mx-auto bg-bona-black">
         <header class="flex justify-between items-center p-4 border-b border-gray-800 bg-bona-card shrink-0">
-            <button onclick="showDashboard()" class="text-gray-400 hover:text-white p-3 z-50 rounded-full hover:bg-white/10 transition-all">
+            <!-- BACK BUTTON FIXED -->
+            <button type="button" onclick="showDashboard()" class="text-gray-400 hover:text-white p-3 z-50 rounded-full hover:bg-white/10 transition-all cursor-pointer">
                 <i class="fa-solid fa-arrow-left text-2xl"></i>
             </button>
+            
             <span class="font-bold text-lg tracking-wide text-bona-gold" id="detail-header-id">讀取中...</span>
             <div class="flex space-x-2">
                 <button type="button" onclick="showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2"><i class="fa-solid fa-qrcode text-xl"></i></button>
@@ -230,7 +232,7 @@
         </div>
     </div>
 
-    <!-- UPDATE MODAL -->
+    <!-- UPDATE MODAL (With Date Picker) -->
     <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button type="button" onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
@@ -249,32 +251,26 @@
                     </div>
                 </div>
 
+                <!-- Container/Substrate fields same as before -->
                 <div class="grid grid-cols-2 gap-5">
                      <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="update-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
                      <div><label class="block text-xs text-gray-500 uppercase mb-1">容器容量</label><select id="update-box-vol" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="100-150ml">100-150ml</option><option value="500ml">500ml</option><option value="700-800ml">700-800ml</option><option value="1000ml">1000ml</option><option value="1400-1500ml">1400-1500ml</option><option value="2200-2300ml">2200-2300ml</option><option value="3200-3500ml">3200-3500ml</option><option value="4L">4L</option><option value="6L">6L</option><option value="10L">10L</option></select></div>
                 </div>
-
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs text-gray-500 uppercase mb-1">更換食材 (主)</label>
-                        <select id="update-sub" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select>
-                    </div>
-                    
+                    <div><label class="block text-xs text-gray-500 uppercase mb-1">更換食材 (主)</label><select id="update-sub" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
                     <div class="grid grid-cols-2 gap-5">
                         <div><label class="block text-xs text-gray-500 uppercase mb-1">副食材</label><select id="update-sub-sec" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="Keep">維持不變</option><option value="無">無</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
                         <div><label class="block text-xs text-gray-500 uppercase mb-1">添加劑</label><select id="update-booster" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="None">維持不變</option><option value="無添加">無添加</option><option value="10g/10L">10g/10L</option><option value="20g/10L">20g/10L</option><option value="極限組">極限組</option></select></div>
                     </div>
                 </div>
-
-                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">
-                    確認更新
-                </button>
+                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">確認更新</button>
             </form>
         </div>
     </div>
 
-    <!-- NEW ENTRY MODAL -->
+    <!-- NEW ENTRY MODAL (Same) -->
     <div id="modal-new-entry" class="hidden fixed inset-0 z-30 bg-black/90 flex items-start sm:items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+         <!-- ... (New Entry form content same as v48.9, removed for brevity but preserved in logic) ... -->
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative my-8">
             <button type="button" onclick="closeNewEntryModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
             <h3 class="text-xl font-bold text-white mb-6 tracking-wide border-b border-gray-800 pb-4">新蟲 <span class="text-bona-gold">錄入</span></h3>
@@ -283,25 +279,19 @@
                 <div class="bg-gray-900 p-6 rounded-lg border border-gray-700 space-y-4">
                     <label class="block text-xs text-bona-gold uppercase font-bold tracking-widest text-center mb-2">設定物種代碼 (Prefix)</label>
                     <input type="text" id="id-prefix" class="w-full bg-black border-2 border-bona-gold/50 rounded-xl text-white text-4xl p-4 outline-none text-center font-bold uppercase tracking-widest h-20 focus:border-bona-gold transition-colors" placeholder="D" value="D" oninput="this.value = this.value.toUpperCase(); updateIDPreview()">
-                    
-                    <div class="text-center">
-                        <button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定 (年份/批次/序號)</button>
-                    </div>
-
-                    <!-- Hidden Details -->
+                    <div class="text-center"><button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定 (年份/批次/序號)</button></div>
                     <div id="id-details" class="hidden grid grid-cols-3 gap-3 pt-2 border-t border-gray-800">
                         <div><label class="block text-[10px] text-gray-500 mb-1 text-center">年份</label><select id="id-year" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" onchange="updateIDPreview()"><option value="24">24</option><option value="25">25</option><option value="26">26</option></select></div>
                         <div><label class="block text-[10px] text-gray-500 mb-1 text-center">批次</label><input type="number" id="id-batch" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="01" oninput="updateIDPreview()"></div>
                         <div><label class="block text-[10px] text-gray-500 mb-1 text-center">序號</label><input type="number" id="id-seq" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="001" oninput="updateIDPreview()"></div>
                     </div>
-
                     <div class="text-center font-mono text-xl font-bold text-white tracking-widest bg-black/50 py-2 rounded mt-2" id="id-preview">D-24-01-001</div>
                 </div>
-
                 <!-- Dates -->
                 <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
                 <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
                 <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
+                <!-- Substrates same as Update modal -->
                 <div class="space-y-4 pt-2 border-t border-gray-800">
                     <div class="grid grid-cols-2 gap-5">
                          <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="new-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
@@ -351,7 +341,6 @@
             target.classList.remove('hidden');
             if (viewName !== 'view-scanner') target.classList.add('flex');
             
-            // Fix: Clear search input when returning to dashboard
             if (viewName === 'dashboard') {
                 document.getElementById('search-id').value = '';
             }
@@ -379,7 +368,7 @@
 
         const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w"; 
         let currentUser = localStorage.getItem('bona_user_key') || null;
-        let currentRealId = localStorage.getItem('bona_user_id') || null; // v48.9 split
+        let currentRealId = localStorage.getItem('bona_user_id') || null;
         let quotaInfo = { max: 50, used: 0 }; 
         let html5QrcodeScanner = null;
         let currentDetailData = null;
@@ -412,7 +401,9 @@
             }
         });
 
-        // --- CLEANER & LOGIC ---
+        // ... (cleanData, updateIDPreview, updateDashboardUI, verifyLicense, consolidateData, fetchBeetleData, calculateGrowth, populateDetailView, renderHistoryList, handleLogin, openUpdateModal, closeUpdateModal, showNewEntryForm same as v48.9) ...
+        // Re-declaring critical ones to be safe:
+
         function cleanData(val) {
             if (val === null || val === undefined) return '--';
             if (typeof val === 'object') {
@@ -457,7 +448,6 @@
             else bar.className = 'quota-bar h-full bg-bona-gold';
         }
 
-        // --- AUTH ---
         async function verifyLicense(key, silent) {
             if (!silent) showLoading(true);
             try {
@@ -474,9 +464,7 @@
 
                 const rawKey = data.key_found || data['License Key'] || data.id;
                 const rawStatus = data.status || data.Status;
-                
-                // v48.9 FIX: Capture Real User ID if present
-                const rawRealId = data.real_id || data.user_id || data.id; // Fallback to whatever unique we have
+                const rawRealId = data.real_id || data.user_id || data.id;
 
                 const cleanKey = cleanData(rawKey);
                 const cleanStatus = cleanData(rawStatus).toString().trim();
@@ -487,12 +475,10 @@
                 const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended;
 
                 if (hasKey && isActive) {
-                    currentUser = key; // License Key for Auth
-                    currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; // Real ID for Data, fallback to Key
-
+                    currentUser = key;
+                    currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key;
                     localStorage.setItem('bona_user_key', key);
                     localStorage.setItem('bona_user_id', currentRealId);
-
                     quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 };
                     updateDashboardUI();
                     if (!silent) showNotification('登入成功', 'success');
@@ -513,7 +499,6 @@
             }
         }
 
-        // --- FETCH & DATA HANDLING (v48.6 Fixes) ---
         function consolidateData(rawList) {
             let final = { ...rawList[0] }; 
             const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; };
@@ -529,9 +514,7 @@
 
         async function fetchBeetleData(id) {
             if (!currentUser) return showNotification('請先登入', 'error');
-            // v48.9 FIX: Use Real ID
             const targetUser = currentRealId || currentUser;
-
             showLoading(true);
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -543,14 +526,12 @@
                 let data;
                 try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); }
                 if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} }
-                
                 const normalize = (obj) => {
                     if (!obj || typeof obj !== 'object') return obj;
                     const newObj = {};
                     Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]);
                     return newObj;
                 };
-
                 let rawList = [];
                 if (Array.isArray(data)) rawList = data;
                 else if (typeof data === 'object' && data !== null) {
@@ -560,12 +541,11 @@
                         rawList = Array.isArray(inner) ? inner : [inner];
                     }
                 }
-
                 if (rawList.length > 0) {
                     const normalizedList = rawList.map(normalize);
                     const validHistory = normalizedList.filter(r => r.id && cleanData(r.id) !== '--');
                     if (validHistory.length > 0) {
-                        historyDataCache = validHistory; // Update Cache
+                        historyDataCache = validHistory;
                         const consolidatedRecord = consolidateData(validHistory);
                         currentDetailData = consolidatedRecord;
                         populateDetailView(consolidatedRecord);
@@ -628,13 +608,8 @@
             const container = document.getElementById('history-list');
             const section = document.getElementById('history-section');
             container.innerHTML = '';
-            
-            // Allow list to show even with 1 item for better UX
-            if (!dataArray || dataArray.length === 0) { 
-                section.classList.add('hidden'); return; 
-            }
+            if (!dataArray || dataArray.length === 0) { section.classList.add('hidden'); return; }
             section.classList.remove('hidden');
-
             dataArray.forEach(item => {
                 const el = document.createElement('div');
                 el.className = 'glass-panel p-4 rounded-xl relative';
@@ -667,24 +642,15 @@
                 container.appendChild(el);
             });
         }
-
         async function handleLogin() { const key = document.getElementById('login-license').value.trim(); if (!key) return showNotification('請輸入授權碼', 'error'); await verifyLicense(key, false); }
-        function openUpdateModal() { 
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('update-date').value = today;
-            document.getElementById('modal-update').classList.remove('hidden'); 
-        }
+        function openUpdateModal() { const today = new Date().toISOString().split('T')[0]; document.getElementById('update-date').value = today; document.getElementById('modal-update').classList.remove('hidden'); }
         function closeUpdateModal() { document.getElementById('modal-update').classList.add('hidden'); }
         function showNewEntryForm() { if (quotaInfo.used >= quotaInfo.max) { document.getElementById('modal-upgrade').classList.remove('hidden'); return; } document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; updateIDPreview(); const lastSeq = localStorage.getItem('last_seq'); if (lastSeq) { const nextSeq = parseInt(lastSeq) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); updateIDPreview(); } document.getElementById('modal-new-entry').classList.remove('hidden'); }
         
-        // --- v49.1 FIX: Send FULL payload even for New Entry ---
         async function handleUpdateSubmit(e) {
             e.preventDefault();
-            // GUARD
             if (document.getElementById('modal-update').classList.contains('hidden')) return;
             if (!currentUser) return showNotification('請先登入', 'error');
-            
-            // v48.9 FIX: Use Real ID
             const targetUser = currentRealId || currentUser;
             
             closeUpdateModal();
@@ -699,7 +665,6 @@
             let boxVol = document.getElementById('update-box-vol').value;
             let booster = document.getElementById('update-booster').value;
 
-            // Inheritance
             if (currentDetailData) {
                 if (sub === 'Keep') sub = cleanData(currentDetailData.sub_main);
                 if (subSec === 'Keep') subSec = cleanData(currentDetailData.sub_sec);
@@ -708,12 +673,13 @@
                 if (booster === 'None') booster = cleanData(currentDetailData.booster);
             }
 
+            // FULL PAYLOAD (V49.1 FIX) - Always send EVERYTHING
             const payload = {
                 type: 'growth', mode: 'update', id: id, userId: targetUser,
                 weight: parseFloat(weight), 
-                date_check: checkDate, // v49.1 Ensure date is sent
-                // Full inheritance payload
-                date_hatch: currentDetailData ? cleanData(currentDetailData.date_hatch) : '', // Inherit hatch date
+                date_check: checkDate,
+                // Inherit static data and send it back to ensure new record has it
+                date_hatch: currentDetailData ? cleanData(currentDetailData.date_hatch) : '',
                 generation: currentDetailData ? cleanData(currentDetailData.generation) : '',
                 sire_size: currentDetailData ? cleanData(currentDetailData.sire_size) : '',
                 dam_size: currentDetailData ? cleanData(currentDetailData.dam_size) : '',
@@ -730,23 +696,13 @@
                     document.getElementById('d-check').innerText = checkDate;
                     
                     const newRecord = {
-                        id: id,
-                        weight: weight,
-                        date_check: checkDate,
-                        sub_main: sub,
-                        sub_sec: subSec,
-                        box_type: boxType,
-                        box_vol: boxVol,
-                        booster: booster,
-                        generation: currentDetailData.generation,
-                        date_hatch: currentDetailData.date_hatch,
-                        sire_size: currentDetailData.sire_size,
-                        dam_size: currentDetailData.dam_size
+                        id: id, weight: weight, date_check: checkDate,
+                        sub_main: sub, sub_sec: subSec, box_type: boxType, box_vol: boxVol, booster: booster,
+                        generation: payload.generation, date_hatch: payload.date_hatch,
+                        sire_size: payload.sire_size, dam_size: payload.dam_size
                     };
                     
-                    if (historyDataCache) historyDataCache.unshift(newRecord);
-                    else historyDataCache = [newRecord];
-
+                    if (historyDataCache) historyDataCache.unshift(newRecord); else historyDataCache = [newRecord];
                     currentDetailData = newRecord;
                     populateDetailView(newRecord);
                     renderHistoryList(historyDataCache);
@@ -757,14 +713,11 @@
 
         async function handleNewEntrySubmit(e) {
             e.preventDefault();
-            // GUARD
             if (document.getElementById('modal-new-entry').classList.contains('hidden')) return;
             if (!currentUser) return showNotification('請先登入', 'error');
             if (quotaInfo.used >= quotaInfo.max) { closeNewEntryModal(); document.getElementById('modal-upgrade').classList.remove('hidden'); return; }
             
-            // v48.9 FIX: Use Real ID
             const targetUser = currentRealId || currentUser;
-            
             closeNewEntryModal();
             showLoading(true);
             const fullId = updateIDPreview();
@@ -776,7 +729,7 @@
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        type: 'growth', mode: 'new', userId: targetUser, id: fullId, // Use Real ID here
+                        type: 'growth', mode: 'new', userId: targetUser, id: fullId,
                         date_check: document.getElementById('new-check-date').value,
                         date_hatch: document.getElementById('new-hatch-date').value,
                         generation: document.getElementById('new-gen').value.toUpperCase(),
