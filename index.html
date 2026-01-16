@@ -36,7 +36,7 @@
             margin: 0 auto; position: relative; background-color: #0f0f0f;
         }
 
-        /* FIXED HEADER (Fixed: Removed pointer-events: none) */
+        /* FIXED HEADER */
         .fixed-header-wrapper {
             position: absolute; top: 0; left: 0; right: 0; z-index: 50;
             background-color: rgba(15, 15, 15, 0.98);
@@ -44,9 +44,9 @@
             padding-top: max(env(safe-area-inset-top), 20px);
             min-height: 140px; 
             display: flex; flex-direction: column; justify-content: center;
-            /* pointer-events: none; <--- REMOVED THIS LINE */
         }
-        
+        .fixed-header-wrapper > * { pointer-events: auto; }
+
         /* SCROLL CONTENT */
         .scroll-content {
             flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -70,8 +70,8 @@
         .quota-bar { transition: width 0.5s ease-out; }
         .lineage-link { color: #d4af37; text-decoration: underline; font-weight: bold; cursor: pointer; }
         
-        /* Interactive Elements */
-        button, .nav-btn { cursor: pointer; pointer-events: auto !important; }
+        /* Button Z-Index Fix */
+        button, .nav-btn { cursor: pointer; position: relative; z-index: 100; }
     </style>
 </head>
 <body class="font-sans antialiased text-base">
@@ -230,48 +230,6 @@
     </div>
 
     <!-- MODALS -->
-    <!-- NEW ENTRY MODAL -->
-    <div id="modal-new-entry" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-start sm:items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative my-8">
-            <button onclick="window.closeNewEntryModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
-            <h3 class="text-xl font-bold text-white mb-6 tracking-wide border-b border-gray-800 pb-4">新蟲 <span class="text-bona-gold">錄入</span></h3>
-            <form id="form-new-entry" onsubmit="window.handleNewEntrySubmit(event)" class="space-y-6">
-                <!-- Smart ID -->
-                <div class="bg-gray-900 p-6 rounded-lg border border-gray-700 space-y-4">
-                    <label class="block text-xs text-bona-gold uppercase font-bold tracking-widest text-center mb-2">設定物種代碼 (Prefix)</label>
-                    <input type="text" id="id-prefix" class="w-full bg-black border-2 border-bona-gold/50 rounded-xl text-white text-4xl p-4 outline-none text-center font-bold uppercase tracking-widest h-20 focus:border-bona-gold transition-colors" placeholder="D" value="D" oninput="this.value = this.value.toUpperCase(); window.updateIDPreview()">
-                    <div class="text-center"><button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定</button></div>
-                    <div id="id-details" class="hidden grid grid-cols-3 gap-3 pt-2 border-t border-gray-800">
-                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">年份</label><select id="id-year" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" onchange="window.updateIDPreview()"><option value="24">24</option><option value="25">25</option><option value="26">26</option></select></div>
-                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">批次</label><input type="number" id="id-batch" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="01" oninput="window.updateIDPreview()"></div>
-                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">序號</label><input type="number" id="id-seq" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="001" oninput="window.updateIDPreview()"></div>
-                    </div>
-                    <div class="text-center font-mono text-xl font-bold text-white tracking-widest bg-black/50 py-2 rounded mt-2" id="id-preview">D-24-01-001</div>
-                </div>
-                <!-- Dates -->
-                <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
-                <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
-                <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
-                <!-- Container/Substrates (Same as update) -->
-                <div class="space-y-4 pt-2 border-t border-gray-800">
-                    <div class="grid grid-cols-2 gap-5">
-                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="new-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
-                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器容量</label><select id="new-box-vol" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="100-150ml">100-150ml</option><option value="500ml">500ml</option><option value="700-800ml">700-800ml</option><option value="1000ml">1000ml</option><option value="1400-1500ml">1400-1500ml</option><option value="2200-2300ml">2200-2300ml</option><option value="3200-3500ml">3200-3500ml</option><option value="4L">4L</option><option value="6L">6L</option><option value="10L">10L</option></select></div>
-                    </div>
-                </div>
-                 <div class="space-y-4">
-                    <div><label class="block text-xs text-gray-500 uppercase mb-1">主食材 (Main)</label><select id="new-sub-main" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
-                    <div class="grid grid-cols-2 gap-5">
-                        <div><label class="block text-xs text-gray-500 uppercase mb-1">副食材 (Sec)</label><select id="new-sub-sec" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無">無</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
-                        <div><label class="block text-xs text-gray-500 uppercase mb-1">添加劑 (Booster)</label><select id="new-booster" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無添加">無添加</option><option value="10g/10L">10g/10L</option><option value="20g/10L">20g/10L</option><option value="極限組">極限組</option></select></div>
-                    </div>
-                </div>
-                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">確認錄入系統</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- UPDATE MODAL (Full Fields) -->
     <div id="modal-update" class="hidden fixed inset-0 z-[150] bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="window.closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
@@ -298,7 +256,47 @@
         </div>
     </div>
 
-    <!-- Upgrade Modal & QR -->
+    <div id="modal-new-entry" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-start sm:items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative my-8">
+            <button onclick="window.closeNewEntryModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
+            <h3 class="text-xl font-bold text-white mb-6 tracking-wide border-b border-gray-800 pb-4">新蟲 <span class="text-bona-gold">錄入</span></h3>
+            <form id="form-new-entry" onsubmit="window.handleNewEntrySubmit(event)" class="space-y-6">
+                <!-- Smart ID -->
+                <div class="bg-gray-900 p-6 rounded-lg border border-gray-700 space-y-4">
+                    <label class="block text-xs text-bona-gold uppercase font-bold tracking-widest text-center mb-2">設定物種代碼 (Prefix)</label>
+                    <input type="text" id="id-prefix" class="w-full bg-black border-2 border-bona-gold/50 rounded-xl text-white text-4xl p-4 outline-none text-center font-bold uppercase tracking-widest h-20 focus:border-bona-gold transition-colors" placeholder="D" value="D" oninput="this.value = this.value.toUpperCase(); window.updateIDPreview()">
+                    <div class="text-center"><button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定</button></div>
+                    <div id="id-details" class="hidden grid grid-cols-3 gap-3 pt-2 border-t border-gray-800">
+                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">年份</label><select id="id-year" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" onchange="window.updateIDPreview()"><option value="24">24</option><option value="25">25</option><option value="26">26</option></select></div>
+                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">批次</label><input type="number" id="id-batch" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="01" oninput="window.updateIDPreview()"></div>
+                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">序號</label><input type="number" id="id-seq" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="001" oninput="window.updateIDPreview()"></div>
+                    </div>
+                    <div class="text-center font-mono text-xl font-bold text-white tracking-widest bg-black/50 py-2 rounded mt-2" id="id-preview">D-24-01-001</div>
+                </div>
+                <!-- Dates -->
+                <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
+                <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
+                <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
+                <!-- Container/Substrates -->
+                <div class="space-y-4 pt-2 border-t border-gray-800">
+                    <div class="grid grid-cols-2 gap-5">
+                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="new-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
+                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器容量</label><select id="new-box-vol" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="100-150ml">100-150ml</option><option value="500ml">500ml</option><option value="700-800ml">700-800ml</option><option value="1000ml">1000ml</option><option value="1400-1500ml">1400-1500ml</option><option value="2200-2300ml">2200-2300ml</option><option value="3200-3500ml">3200-3500ml</option><option value="4L">4L</option><option value="6L">6L</option><option value="10L">10L</option></select></div>
+                    </div>
+                </div>
+                 <div class="space-y-4">
+                    <div><label class="block text-xs text-gray-500 uppercase mb-1">主食材 (Main)</label><select id="new-sub-main" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
+                    <div class="grid grid-cols-2 gap-5">
+                        <div><label class="block text-xs text-gray-500 uppercase mb-1">副食材 (Sec)</label><select id="new-sub-sec" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無">無</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
+                        <div><label class="block text-xs text-gray-500 uppercase mb-1">添加劑 (Booster)</label><select id="new-booster" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無添加">無添加</option><option value="10g/10L">10g/10L</option><option value="20g/10L">20g/10L</option><option value="極限組">極限組</option></select></div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">確認錄入系統</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- UPGRADE MODAL & QR MODAL (Unchanged) -->
     <div id="modal-upgrade" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md"><div class="w-full max-w-sm text-center relative"><i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i><h2 class="text-2xl font-bold text-white mb-2 tracking-widest">QUOTA EXCEEDED</h2><p class="text-gray-400 mb-8 text-sm leading-relaxed">您的飼育紀錄額度已達上限。<br>請聯繫管理員升級至 PRO+ 方案以解鎖更多空間。</p><button onclick="document.getElementById('modal-upgrade').classList.add('hidden')" class="border border-gray-600 text-gray-400 px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors uppercase text-xs tracking-widest">Close</button></div></div>
     <div id="modal-qr" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl"><button onclick="window.closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button><h3 class="text-xl font-bold text-black mb-1">QR CODE</h3><p class="text-sm text-gray-500 font-mono mb-4" id="qr-id-label">--</p><div id="qrcode" class="flex justify-center mb-4"></div><p class="text-xs text-gray-400">請截圖保存或列印</p></div></div>
 
@@ -371,12 +369,32 @@
                 const cleanKey = window.cleanData(rawKey);
                 const cleanStatus = window.cleanData(rawStatus).toString().trim();
                 const cleanRealId = window.cleanData(rawRealId);
-                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
-                const isSuspended = cleanStatus.toLowerCase().includes('suspend') || cleanStatus.toLowerCase().includes('inactive');
-                const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended;
-                if (hasKey && isActive) {
-                    currentUser = key; currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; localStorage.setItem('bona_user_key', key); localStorage.setItem('bona_user_id', currentRealId); quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 }; window.updateDashboardUI(); if (!silent) window.showNotification('登入成功', 'success'); window.switchView('dashboard'); } else { if (!silent) { alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`); window.showNotification(`授權無效`, 'error'); } else window.logout(); } } catch (error) { if (!silent) window.showNotification('連線錯誤', 'error'); if(silent) window.logout(); } finally { if (!silent) window.showLoading(false); }
+                
+                // v64.1 Security Fix: Strict Case Comparison
+                const keyMatch = cleanKey === key;
+                const isActive = cleanStatus.toLowerCase().includes('active');
+
+                if (keyMatch && isActive) {
+                    currentUser = key; 
+                    currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; 
+                    localStorage.setItem('bona_user_key', key); 
+                    localStorage.setItem('bona_user_id', currentRealId); 
+                    quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 }; 
+                    window.updateDashboardUI(); 
+                    if (!silent) { 
+                        window.showNotification('登入成功', 'success'); 
+                        window.switchView('dashboard'); 
+                    }
+                } else { 
+                    if (!silent) { 
+                        let msg = !keyMatch ? "授權碼不符 (大小寫敏感)" : "帳號狀態異常";
+                        alert(`驗證失敗: ${msg}`); 
+                        window.showNotification(msg, 'error'); 
+                    } else window.logout(); 
+                }
+            } catch(e) { if(!silent) window.showNotification('連線錯誤', 'error'); } finally { if(!silent) window.showLoading(false); }
         }
+
         window.consolidateData = function(rawList) { let final = { ...rawList[0] }; const isValid = (v) => { const s = window.cleanData(v); return s && s !== '--' && s !== ''; }; const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id']; staticFields.forEach(field => { if (!isValid(final[field])) { const found = rawList.find(r => isValid(r[field])); if (found) final[field] = found[field]; } }); return final; }
         window.fetchBeetleData = async function(id) { if (!currentUser) return window.showNotification('請先登入', 'error'); const targetUser = currentRealId || currentUser; window.showLoading(true); try { const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'query', id: id, userId: targetUser }) }); const text = await response.text(); let data; try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); } if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} } const normalize = (obj) => { if (!obj || typeof obj !== 'object') return obj; const newObj = {}; Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]); return newObj; }; let rawList = []; if (Array.isArray(data)) rawList = data; else if (typeof data === 'object' && data !== null) { if (data.id || data.ID) rawList = [data]; else if (data.body || data.data || data.items) { const inner = data.body || data.data || data.items; rawList = Array.isArray(inner) ? inner : [inner]; } } if (rawList.length > 0) { const normalizedList = rawList.map(normalize); const validHistory = normalizedList.filter(r => r.id && window.cleanData(r.id) !== '--'); if (validHistory.length > 0) { historyDataCache = validHistory; const consolidatedRecord = window.consolidateData(validHistory); currentDetailData = consolidatedRecord; window.populateDetailView(consolidatedRecord); window.renderHistoryList(validHistory); window.calculateGrowth(consolidatedRecord, validHistory); window.switchView('detail'); document.getElementById('search-id').value = ''; } else { window.showNotification(`資料結構異常`, 'error'); } } else { window.showNotification(`找不到資料`, 'error'); } } catch (error) { window.showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); } }
         window.calculateGrowth = function(current, history) { const curDate = new Date(window.cleanData(current.date_check)); const hatchDate = new Date(window.cleanData(current.date_hatch)); const curWeight = parseFloat(window.cleanData(current.weight)); let totalAvg = '--'; if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) { const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24); if (totalDays > 0) totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日'; } document.getElementById('d-growth-total').innerText = totalAvg; let intervalAvg = '--'; if (history && history.length > 1) { const prev = history[1]; const prevDate = new Date(window.cleanData(prev.date_check)); const prevWeight = parseFloat(window.cleanData(prev.weight)); if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) { const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24); const weightDiff = curWeight - prevWeight; if (intDays > 0) { intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日'; const el = document.getElementById('d-growth-interval'); el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold"; } } } document.getElementById('d-growth-interval').innerText = intervalAvg; }
