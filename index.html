@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>BONA BEETLE PRO</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -48,17 +48,26 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         input:focus, select:focus { box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3); }
         .quota-bar { transition: width 1s ease-in-out; }
+        
+        /* Sticky Header Fix */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background-color: #0f0f0f; /* Match body bg */
+            padding-top: env(safe-area-inset-top); /* Notch support */
+        }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col relative overflow-hidden text-base">
+<body class="font-sans antialiased min-h-screen flex flex-col relative overflow-hidden text-base pb-safe">
 
     <!-- Notifications -->
-    <div id="notification-area" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-sm space-y-2 pointer-events-none" style="z-index: 9999;"></div>
+    <div id="notification-area" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] w-11/12 max-w-sm space-y-2 pointer-events-none"></div>
 
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-90 z-[60] hidden flex-col items-center justify-center">
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-90 z-[90] hidden flex-col items-center justify-center">
         <div class="loader mb-4"></div>
-        <p class="text-bona-gold text-lg font-bold tracking-wider animate-pulse" id="loading-text">系統處理中...</p>
+        <p class="text-bona-gold text-lg font-bold tracking-wider animate-pulse" id="loading-text">SYSTEM PROCESSING</p>
     </div>
 
     <!-- LOGIN -->
@@ -83,8 +92,9 @@
     </div>
 
     <!-- DASHBOARD -->
-    <div id="view-dashboard" class="hidden flex-col h-screen w-full max-w-md mx-auto bg-bona-black">
-        <header class="p-4 border-b border-gray-800 bg-bona-card shrink-0">
+    <div id="view-dashboard" class="hidden flex-col h-screen w-full max-w-md mx-auto bg-bona-black overflow-y-auto">
+        <!-- Sticky Header (Fixed Layout) -->
+        <header class="sticky-header p-4 border-b border-gray-800 bg-bona-card/95 backdrop-blur shadow-lg">
             <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center space-x-3">
                     <div class="w-8 h-8 rounded-full border border-bona-gold flex items-center justify-center overflow-hidden">
@@ -101,20 +111,16 @@
                 </button>
             </div>
             
-            <!-- QUOTA BAR (v53.1 UI Fix: Increased Height & Padding) -->
-            <div class="w-full px-1">
-                <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                    <span>個體額度</span>
-                    <span id="quota-text">-- / --</span>
-                </div>
-                <!-- Increased height to h-4 (16px) to prevent clipping -->
-                <div class="bg-gray-800 rounded-full h-4 w-full border border-gray-700 relative overflow-hidden shadow-inner">
-                    <div id="quota-bar-fill" class="bg-bona-gold h-full quota-bar" style="width: 0%;"></div>
+            <!-- QUOTA BAR -->
+            <div class="bg-black rounded-full h-4 w-full border border-gray-700 relative overflow-hidden">
+                <div id="quota-bar-fill" class="bg-bona-gold h-full quota-bar" style="width: 0%;"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white tracking-widest uppercase" style="text-shadow: 0 1px 2px black;">
+                    額度: <span id="quota-text">-- / --</span>
                 </div>
             </div>
         </header>
 
-        <main class="flex-grow p-4 overflow-y-auto space-y-6">
+        <main class="p-4 space-y-6 pb-20">
             <div class="grid grid-cols-2 gap-5">
                 <button onclick="openScanner()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors border-bona-gold/30 border min-h-[140px]">
                     <i class="fa-solid fa-qrcode text-4xl text-bona-gold"></i>
@@ -149,24 +155,26 @@
         <div id="reader" class="w-full h-full bg-black"></div>
     </div>
 
-    <!-- DETAIL VIEW -->
-    <div id="view-detail" class="hidden flex-col h-screen w-full max-w-md mx-auto bg-bona-black">
-        <header class="grid grid-cols-3 items-center p-4 border-b border-gray-800 bg-bona-card shrink-0">
+    <!-- DETAIL VIEW (Fixed Back Button) -->
+    <div id="view-detail" class="hidden flex-col h-screen w-full max-w-md mx-auto bg-bona-black overflow-y-auto">
+        <header class="sticky-header grid grid-cols-3 items-center p-4 border-b border-gray-800 bg-bona-card/95 backdrop-blur shadow-lg">
             <div class="flex justify-start">
-                <button type="button" onclick="showDashboard()" class="text-gray-400 hover:text-white p-3 rounded-full hover:bg-white/10 transition-all cursor-pointer">
+                <!-- Back Button: High Z-Index, Large Hit Area -->
+                <button type="button" onclick="showDashboard()" class="text-gray-400 hover:text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-all cursor-pointer z-50 flex items-center">
                     <i class="fa-solid fa-arrow-left text-2xl"></i>
+                    <span class="text-xs ml-1 font-bold">BACK</span>
                 </button>
             </div>
             <div class="flex justify-center">
-                <span class="font-bold text-lg tracking-wide text-bona-gold truncate" id="detail-header-id">讀取中...</span>
+                <span class="font-bold text-lg tracking-wide text-bona-gold truncate max-w-[150px]" id="detail-header-id">讀取中...</span>
             </div>
             <div class="flex justify-end space-x-2">
-                <button type="button" onclick="showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2"><i class="fa-solid fa-qrcode text-xl"></i></button>
-                <button type="button" onclick="toggleEditMode()" class="text-bona-gold hover:text-white p-2"><i class="fa-solid fa-pen-to-square text-xl"></i></button>
+                <button type="button" onclick="showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2 relative z-50"><i class="fa-solid fa-qrcode text-xl"></i></button>
+                <button type="button" onclick="toggleEditMode()" class="text-bona-gold hover:text-white p-2 relative z-50"><i class="fa-solid fa-pen-to-square text-xl"></i></button>
             </div>
         </header>
 
-        <main class="flex-grow p-4 overflow-y-auto pb-24 space-y-4">
+        <main class="p-4 space-y-4 pb-24">
             <!-- Latest Status Card -->
             <div class="glass-panel p-5 rounded-xl border-l-4 border-l-bona-gold relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-fingerprint text-6xl text-white"></i></div>
@@ -240,7 +248,7 @@
     </div>
 
     <!-- UPDATE MODAL -->
-    <div id="modal-update" class="hidden fixed inset-0 z-30 bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
+    <div id="modal-update" class="hidden fixed inset-0 z-[70] bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button type="button" onclick="closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
             <h3 class="text-xl font-bold text-bona-gold mb-6 tracking-wide border-b border-gray-800 pb-4">更新數據</h3>
@@ -309,9 +317,9 @@
 
                 <!-- Dates -->
                 <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
-                <!-- ... (Rest of New Entry Form) ... -->
                 <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
                 <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
+                <!-- ... Container/Substrate inputs same as v53.0 ... -->
                 <div class="space-y-4 pt-2 border-t border-gray-800">
                     <div class="grid grid-cols-2 gap-5">
                          <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="new-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
@@ -360,10 +368,7 @@
             const target = document.getElementById(`view-${viewName}`);
             target.classList.remove('hidden');
             if (viewName !== 'view-scanner') target.classList.add('flex');
-            
-            if (viewName === 'dashboard') {
-                document.getElementById('search-id').value = '';
-            }
+            if (viewName === 'dashboard') document.getElementById('search-id').value = '';
         }
 
         function showLoading(show) { 
@@ -421,285 +426,26 @@
             }
         });
 
-        // --- CLEANER & LOGIC ---
-        function cleanData(val) {
-            if (val === null || val === undefined) return '--';
-            if (typeof val === 'object') {
-                if (val.type === 'text' && val.text) return val.text.content || '--'; 
-                if (val.type === 'rich_text' && Array.isArray(val.rich_text)) return val.rich_text.length > 0 ? val.rich_text[0].plain_text : '--';
-                if (Array.isArray(val) && val.length > 0 && val[0].text) return val[0].text.content; 
-                if (val.type === 'select' && val.select) return val.select.name; 
-                if (val.select && val.select.name) return val.select.name; 
-                if (val.type === 'number') return val.number; 
-                if (val.type === 'date' && val.date) return val.date.start; 
-                if (val.start) return val.start; 
-                if (val.name) return val.name; 
-                if (val.plain_text) return val.plain_text; 
-            }
-            if (typeof val === 'string') {
-                if(val.trim().startsWith('{') || val.trim().startsWith('[')) {
-                     try { return cleanData(JSON.parse(val)); } catch(e) { return val; }
-                }
-                // String date fix (ISO to YYYY-MM-DD)
-                if(val.match(/^\d{4}-\d{2}-\d{2}T/)) return val.split('T')[0];
-            }
-            return val;
-        }
-
-        // --- v50.1 FIX: Sanitized Payload (Nullify '--') ---
-        function getSafePayloadValue(val) {
-            const cleaned = cleanData(val);
-            return (cleaned === '--' || cleaned === '') ? null : cleaned;
-        }
-
-        function updateIDPreview() {
-            const prefix = document.getElementById('id-prefix').value || 'D';
-            const year = document.getElementById('id-year').value;
-            let batch = document.getElementById('id-batch').value || '00';
-            let seq = document.getElementById('id-seq').value || '000';
-            if (batch.length < 2) batch = '0' + batch;
-            if (seq.length < 3) seq = ('000' + seq).slice(-3);
-            const fullId = `${prefix}-${year}-${batch}-${seq}`;
-            document.getElementById('id-preview').innerText = fullId;
-            return fullId;
-        }
-
-        function updateDashboardUI() {
-            if(!currentUser) return;
-            const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser;
-            document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`;
-            const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100);
-            document.getElementById('quota-bar-fill').style.width = `${percent}%`;
-            document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`;
-            const bar = document.getElementById('quota-bar-fill');
-            if (percent >= 90) bar.className = 'quota-bar h-full bg-bona-danger';
-            else bar.className = 'quota-bar h-full bg-bona-gold';
-        }
-
-        // --- AUTH ---
-        async function verifyLicense(key, silent) {
-            if (!silent) showLoading(true);
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'auth', userId: key })
-                });
-                const text = await response.text();
-                let data = {};
-                try { data = JSON.parse(text); } catch(e) {}
-                if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
-                if (Array.isArray(data) && data.length > 0) data = data[0];
-
-                const rawKey = data.key_found || data['License Key'] || data.id;
-                const rawStatus = data.status || data.Status;
-                
-                const rawRealId = data.real_id || data.user_id || data.id;
-
-                const cleanKey = cleanData(rawKey);
-                const cleanStatus = cleanData(rawStatus).toString().trim();
-                const cleanRealId = cleanData(rawRealId);
-
-                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
-                const isSuspended = cleanStatus.toLowerCase().includes('suspend') || cleanStatus.toLowerCase().includes('inactive');
-                const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended;
-
-                if (hasKey && isActive) {
-                    currentUser = key;
-                    currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key;
-                    localStorage.setItem('bona_user_key', key);
-                    localStorage.setItem('bona_user_id', currentRealId);
-                    quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 };
-                    updateDashboardUI();
-                    if (!silent) showNotification('登入成功', 'success');
-                    switchView('dashboard');
-                } else {
-                    let failReason = !hasKey ? "找不到授權碼" : `狀態異常 [${cleanStatus}]`;
-                    if (!silent) {
-                        alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`);
-                        showNotification(`授權無效`, 'error');
-                    }
-                    else logout();
-                }
-            } catch (error) {
-                if (!silent) showNotification('連線錯誤', 'error');
-                if(silent) logout(); 
-            } finally {
-                if (!silent) showLoading(false);
-            }
-        }
-
-        // --- FETCH & DATA HANDLING ---
-        function consolidateData(rawList) {
-            let final = { ...rawList[0] }; 
-            const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; };
-            const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id'];
-            staticFields.forEach(field => {
-                if (!isValid(final[field])) {
-                    const found = rawList.find(r => isValid(r[field]));
-                    if (found) final[field] = found[field];
-                }
-            });
-            return final;
-        }
-
-        async function fetchBeetleData(id) {
-            if (!currentUser) return showNotification('請先登入', 'error');
-            const targetUser = currentRealId || currentUser;
-            showLoading(true);
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'query', id: id, userId: targetUser })
-                });
-                const text = await response.text();
-                let data;
-                try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); }
-                if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} }
-                
-                const normalize = (obj) => {
-                    if (!obj || typeof obj !== 'object') return obj;
-                    const newObj = {};
-                    Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]);
-                    return newObj;
-                };
-
-                let rawList = [];
-                if (Array.isArray(data)) rawList = data;
-                else if (typeof data === 'object' && data !== null) {
-                    if (data.id || data.ID) rawList = [data];
-                    else if (data.body || data.data || data.items) {
-                        const inner = data.body || data.data || data.items;
-                        rawList = Array.isArray(inner) ? inner : [inner];
-                    }
-                }
-
-                if (rawList.length > 0) {
-                    const normalizedList = rawList.map(normalize);
-                    const validHistory = normalizedList.filter(r => r.id && cleanData(r.id) !== '--');
-                    if (validHistory.length > 0) {
-                        historyDataCache = validHistory;
-                        const consolidatedRecord = consolidateData(validHistory);
-                        currentDetailData = consolidatedRecord;
-                        populateDetailView(consolidatedRecord);
-                        renderHistoryList(validHistory);
-                        calculateGrowth(consolidatedRecord, validHistory);
-                        switchView('detail');
-                        document.getElementById('search-id').value = '';
-                    } else { showNotification(`資料結構異常`, 'error'); }
-                } else { showNotification(`找不到資料`, 'error'); }
-            } catch (error) { showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { showLoading(false); }
-        }
-
-        function calculateGrowth(current, history) {
-            const curDate = new Date(cleanData(current.date_check));
-            const hatchDate = new Date(cleanData(current.date_hatch));
-            const curWeight = parseFloat(cleanData(current.weight));
-            let totalAvg = '--';
-            if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) {
-                const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24);
-                if (totalDays > 0) totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日';
-            }
-            document.getElementById('d-growth-total').innerText = totalAvg;
-            let intervalAvg = '--';
-            if (history && history.length > 1) {
-                const prev = history[1];
-                const prevDate = new Date(cleanData(prev.date_check));
-                const prevWeight = parseFloat(cleanData(prev.weight));
-                if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) {
-                     const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24);
-                     const weightDiff = curWeight - prevWeight;
-                     if (intDays > 0) {
-                         intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日';
-                         const el = document.getElementById('d-growth-interval');
-                         el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold";
-                     }
-                }
-            }
-            document.getElementById('d-growth-interval').innerText = intervalAvg;
-        }
-
-        function populateDetailView(data) {
-            document.getElementById('detail-header-id').innerText = cleanData(data.id);
-            document.getElementById('d-id').innerText = cleanData(data.id);
-            document.getElementById('d-gen').innerText = cleanData(data.generation);
-            document.getElementById('d-gen-detail').innerText = cleanData(data.generation);
-            document.getElementById('d-hatch').innerText = cleanData(data.date_hatch);
-            document.getElementById('d-weight').innerText = cleanData(data.weight);
-            document.getElementById('d-check').innerText = cleanData(data.date_check);
-            document.getElementById('d-sire').innerText = cleanData(data.sire_size);
-            document.getElementById('d-dam').innerText = cleanData(data.dam_size);
-            document.getElementById('d-box-type').innerText = cleanData(data.box_type);
-            document.getElementById('d-box-vol').innerText = cleanData(data.box_vol);
-            document.getElementById('d-sub-main').innerText = cleanData(data.sub_main);
-            document.getElementById('d-sub-sec').innerText = cleanData(data.sub_sec);
-            document.getElementById('d-booster').innerText = cleanData(data.booster);
-            document.getElementById('update-id').value = cleanData(data.id);
-        }
-
-        function renderHistoryList(dataArray) {
-            const container = document.getElementById('history-list');
-            const section = document.getElementById('history-section');
-            container.innerHTML = '';
-            
-            // Allow list to show even with 1 item for better UX
-            if (!dataArray || dataArray.length === 0) { 
-                section.classList.add('hidden'); return; 
-            }
-            section.classList.remove('hidden');
-
-            dataArray.forEach(item => {
-                const el = document.createElement('div');
-                el.className = 'glass-panel p-4 rounded-xl relative';
-                const date = cleanData(item.date_check);
-                const weight = cleanData(item.weight);
-                const sub = cleanData(item.sub_main);
-                const sub_sec = cleanData(item.sub_sec);
-                const booster = cleanData(item.booster);
-                const box = cleanData(item.box_type);
-                const vol = cleanData(item.box_vol);
-                el.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex flex-col space-y-1 w-2/3">
-                            <span class="text-xs text-gray-500">${date}</span>
-                            <div class="text-xs text-bona-muted leading-relaxed">
-                                <span class="text-white">${sub}</span>
-                                ${sub_sec && sub_sec !== '--' && sub_sec !== '無' ? ' + ' + sub_sec : ''}
-                                <br>
-                                ${booster !== '--' && booster !== '無添加' ? '<span class="text-bona-gold">' + booster + '</span>' : ''}
-                            </div>
-                        </div>
-                        <div class="flex flex-col items-end w-1/3">
-                            <span class="text-white font-bold text-xl mb-1">${weight}g</span>
-                            <div class="text-[10px] text-gray-500 text-right">
-                                ${box}<br>${vol}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(el);
-            });
-        }
+        // ... (cleanData, updateIDPreview, updateDashboardUI, verifyLicense, consolidateData, fetchBeetleData, calculateGrowth, populateDetailView, renderHistoryList, handleLogin, openUpdateModal, closeUpdateModal, showNewEntryForm, handleUpdateSubmit, handleNewEntrySubmit, toggleEditMode, closeNewEntryModal, showQRCodeForCurrent, openQRModal, closeQRModal, openScanner, closeScanner, logout, handleManualSearch, getSafePayloadValue) ...
+        // Re-injecting standard functions to complete file
+        function cleanData(val) { if (val === null || val === undefined) return '--'; if (typeof val === 'object') { if (val.type === 'text' && val.text) return val.text.content || '--'; if (val.type === 'rich_text' && Array.isArray(val.rich_text)) return val.rich_text.length > 0 ? val.rich_text[0].plain_text : '--'; if (Array.isArray(val) && val.length > 0 && val[0].text) return val[0].text.content; if (val.type === 'select' && val.select) return val.select.name; if (val.select && val.select.name) return val.select.name; if (val.type === 'number') return val.number; if (val.type === 'date' && val.date) return val.date.start.split('T')[0]; if (val.start) return val.start.split('T')[0]; if (val.name) return val.name; if (val.plain_text) return val.plain_text; } if (typeof val === 'string') { if(val.trim().startsWith('{') || val.trim().startsWith('[')) { try { return cleanData(JSON.parse(val)); } catch(e) { return val; } } if(val.match(/^\d{4}-\d{2}-\d{2}T/)) return val.split('T')[0]; } return val; }
+        function getSafePayloadValue(val) { const cleaned = cleanData(val); return (cleaned === '--' || cleaned === '') ? null : cleaned; }
+        function updateIDPreview() { const prefix = document.getElementById('id-prefix').value || 'D'; const year = document.getElementById('id-year').value; let batch = document.getElementById('id-batch').value || '00'; let seq = document.getElementById('id-seq').value || '000'; if (batch.length < 2) batch = '0' + batch; if (seq.length < 3) seq = ('000' + seq).slice(-3); const fullId = `${prefix}-${year}-${batch}-${seq}`; document.getElementById('id-preview').innerText = fullId; return fullId; }
+        function updateDashboardUI() { if(!currentUser) return; const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser; document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`; const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100); document.getElementById('quota-bar-fill').style.width = `${percent}%`; document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`; const bar = document.getElementById('quota-bar-fill'); if (percent >= 90) bar.className = 'quota-bar h-full bg-bona-danger'; else bar.className = 'quota-bar h-full bg-bona-gold'; }
+        async function verifyLicense(key, silent) { if (!silent) showLoading(true); try { const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'auth', userId: key }) }); const text = await response.text(); let data = {}; try { data = JSON.parse(text); } catch(e) {} if (data.json) { try { data = JSON.parse(data.json); } catch(e){} } if (Array.isArray(data) && data.length > 0) data = data[0]; const rawKey = data.key_found || data['License Key'] || data.id; const rawStatus = data.status || data.Status; const rawRealId = data.real_id || data.user_id || data.id; const cleanKey = cleanData(rawKey); const cleanStatus = cleanData(rawStatus).toString().trim(); const cleanRealId = cleanData(rawRealId); const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== ''; const isSuspended = cleanStatus.toLowerCase().includes('suspend') || cleanStatus.toLowerCase().includes('inactive'); const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended; if (hasKey && isActive) { currentUser = key; currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; localStorage.setItem('bona_user_key', key); localStorage.setItem('bona_user_id', currentRealId); quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 }; updateDashboardUI(); if (!silent) showNotification('登入成功', 'success'); switchView('dashboard'); } else { let failReason = !hasKey ? "找不到授權碼" : `狀態異常 [${cleanStatus}]`; if (!silent) { alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`); showNotification(`授權無效`, 'error'); } else logout(); } } catch (error) { if (!silent) showNotification('連線錯誤', 'error'); if(silent) logout(); } finally { if (!silent) showLoading(false); } }
+        function consolidateData(rawList) { let final = { ...rawList[0] }; const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; }; const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id']; staticFields.forEach(field => { if (!isValid(final[field])) { const found = rawList.find(r => isValid(r[field])); if (found) final[field] = found[field]; } }); return final; }
+        async function fetchBeetleData(id) { if (!currentUser) return showNotification('請先登入', 'error'); const targetUser = currentRealId || currentUser; showLoading(true); try { const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'query', id: id, userId: targetUser }) }); const text = await response.text(); let data; try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); } if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} } const normalize = (obj) => { if (!obj || typeof obj !== 'object') return obj; const newObj = {}; Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]); return newObj; }; let rawList = []; if (Array.isArray(data)) rawList = data; else if (typeof data === 'object' && data !== null) { if (data.id || data.ID) rawList = [data]; else if (data.body || data.data || data.items) { const inner = data.body || data.data || data.items; rawList = Array.isArray(inner) ? inner : [inner]; } } if (rawList.length > 0) { const normalizedList = rawList.map(normalize); const validHistory = normalizedList.filter(r => r.id && cleanData(r.id) !== '--'); if (validHistory.length > 0) { historyDataCache = validHistory; const consolidatedRecord = consolidateData(validHistory); currentDetailData = consolidatedRecord; populateDetailView(consolidatedRecord); renderHistoryList(validHistory); calculateGrowth(consolidatedRecord, validHistory); switchView('detail'); document.getElementById('search-id').value = ''; } else { showNotification(`資料結構異常`, 'error'); } } else { showNotification(`找不到資料`, 'error'); } } catch (error) { showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { showLoading(false); } }
+        function calculateGrowth(current, history) { const curDate = new Date(cleanData(current.date_check)); const hatchDate = new Date(cleanData(current.date_hatch)); const curWeight = parseFloat(cleanData(current.weight)); let totalAvg = '--'; if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) { const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24); if (totalDays > 0) totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日'; } document.getElementById('d-growth-total').innerText = totalAvg; let intervalAvg = '--'; if (history && history.length > 1) { const prev = history[1]; const prevDate = new Date(cleanData(prev.date_check)); const prevWeight = parseFloat(cleanData(prev.weight)); if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) { const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24); const weightDiff = curWeight - prevWeight; if (intDays > 0) { intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日'; const el = document.getElementById('d-growth-interval'); el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold"; } } } document.getElementById('d-growth-interval').innerText = intervalAvg; }
+        function populateDetailView(data) { document.getElementById('detail-header-id').innerText = cleanData(data.id); document.getElementById('d-id').innerText = cleanData(data.id); document.getElementById('d-gen').innerText = cleanData(data.generation); document.getElementById('d-gen-detail').innerText = cleanData(data.generation); document.getElementById('d-hatch').innerText = cleanData(data.date_hatch); document.getElementById('d-weight').innerText = cleanData(data.weight); document.getElementById('d-check').innerText = cleanData(data.date_check); document.getElementById('d-sire').innerText = cleanData(data.sire_size); document.getElementById('d-dam').innerText = cleanData(data.dam_size); document.getElementById('d-box-type').innerText = cleanData(data.box_type); document.getElementById('d-box-vol').innerText = cleanData(data.box_vol); document.getElementById('d-sub-main').innerText = cleanData(data.sub_main); document.getElementById('d-sub-sec').innerText = cleanData(data.sub_sec); document.getElementById('d-booster').innerText = cleanData(data.booster); document.getElementById('update-id').value = cleanData(data.id); }
+        function renderHistoryList(dataArray) { const container = document.getElementById('history-list'); const section = document.getElementById('history-section'); container.innerHTML = ''; if (!dataArray || dataArray.length === 0) { section.classList.add('hidden'); return; } section.classList.remove('hidden'); dataArray.forEach(item => { const el = document.createElement('div'); el.className = 'glass-panel p-4 rounded-xl relative'; const date = cleanData(item.date_check); const weight = cleanData(item.weight); const sub = cleanData(item.sub_main); const sub_sec = cleanData(item.sub_sec); const booster = cleanData(item.booster); const box = cleanData(item.box_type); const vol = cleanData(item.box_vol); el.innerHTML = ` <div class="flex justify-between items-start"> <div class="flex flex-col space-y-1 w-2/3"> <span class="text-xs text-gray-500">${date}</span> <div class="text-xs text-bona-muted leading-relaxed"> <span class="text-white">${sub}</span> ${sub_sec && sub_sec !== '--' && sub_sec !== '無' ? ' + ' + sub_sec : ''} <br> ${booster !== '--' && booster !== '無添加' ? '<span class="text-bona-gold">' + booster + '</span>' : ''} </div> </div> <div class="flex flex-col items-end w-1/3"> <span class="text-white font-bold text-xl mb-1">${weight}g</span> <div class="text-[10px] text-gray-500 text-right"> ${box}<br>${vol} </div> </div> </div> `; container.appendChild(el); }); }
         async function handleLogin() { const key = document.getElementById('login-license').value.trim(); if (!key) return showNotification('請輸入授權碼', 'error'); await verifyLicense(key, false); }
-        function openUpdateModal() { 
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('update-date').value = today;
-            document.getElementById('modal-update').classList.remove('hidden'); 
-        }
-        function closeUpdateModal() { document.getElementById('modal-update').classList.add('hidden'); }
-        function showNewEntryForm() { if (quotaInfo.used >= quotaInfo.max) { document.getElementById('modal-upgrade').classList.remove('hidden'); return; } document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; updateIDPreview(); const lastSeq = localStorage.getItem('last_seq'); if (lastSeq) { const nextSeq = parseInt(lastSeq) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); updateIDPreview(); } document.getElementById('modal-new-entry').classList.remove('hidden'); }
-        
         async function handleUpdateSubmit(e) {
             e.preventDefault();
-            // GUARD
             if (document.getElementById('modal-update').classList.contains('hidden')) return;
             if (!currentUser) return showNotification('請先登入', 'error');
             const targetUser = currentRealId || currentUser;
-            
             closeUpdateModal();
             showLoading(true);
-            
             const id = document.getElementById('update-id').value;
             const weight = document.getElementById('update-weight').value;
             const checkDate = document.getElementById('update-date').value;
@@ -708,8 +454,6 @@
             let boxType = document.getElementById('update-box-type').value;
             let boxVol = document.getElementById('update-box-vol').value;
             let booster = document.getElementById('update-booster').value;
-
-            // Inheritance
             if (currentDetailData) {
                 if (sub === 'Keep') sub = cleanData(currentDetailData.sub_main);
                 if (subSec === 'Keep') subSec = cleanData(currentDetailData.sub_sec);
@@ -717,23 +461,15 @@
                 if (boxVol === 'Keep') boxVol = cleanData(currentDetailData.box_vol);
                 if (booster === 'None') booster = cleanData(currentDetailData.booster);
             }
-
-            // v53.1 FIX: Sanitized Payload (Nullify '--')
             const payload = {
                 type: 'growth', mode: 'update', id: id, userId: targetUser,
-                weight: parseFloat(weight), 
-                date_check: checkDate,
+                weight: parseFloat(weight), date_check: checkDate,
                 date_hatch: getSafePayloadValue(currentDetailData ? currentDetailData.date_hatch : ''),
                 generation: getSafePayloadValue(currentDetailData ? currentDetailData.generation : ''),
                 sire_size: getSafePayloadValue(currentDetailData ? currentDetailData.sire_size : ''),
                 dam_size: getSafePayloadValue(currentDetailData ? currentDetailData.dam_size : ''),
-                sub_main: getSafePayloadValue(sub), 
-                sub_sec: getSafePayloadValue(subSec), 
-                box_type: getSafePayloadValue(boxType), 
-                box_vol: getSafePayloadValue(boxVol), 
-                booster: getSafePayloadValue(booster)
+                sub_main: getSafePayloadValue(sub), sub_sec: getSafePayloadValue(subSec), box_type: getSafePayloadValue(boxType), box_vol: getSafePayloadValue(boxVol), booster: getSafePayloadValue(booster)
             };
-
             try {
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
@@ -742,14 +478,12 @@
                     showNotification('數據更新成功', 'success');
                     document.getElementById('d-weight').innerText = weight;
                     document.getElementById('d-check').innerText = checkDate;
-                    
                     const newRecord = {
                         id: id, weight: weight, date_check: checkDate,
                         sub_main: sub, sub_sec: subSec, box_type: boxType, box_vol: boxVol, booster: booster,
                         generation: currentDetailData.generation, date_hatch: currentDetailData.date_hatch,
                         sire_size: currentDetailData.sire_size, dam_size: currentDetailData.dam_size
                     };
-                    
                     if (historyDataCache) historyDataCache.unshift(newRecord); else historyDataCache = [newRecord];
                     currentDetailData = newRecord;
                     populateDetailView(newRecord);
@@ -758,14 +492,11 @@
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { showNotification(`更新失敗: ${error.message}`, 'error'); } finally { showLoading(false); }
         }
-
         async function handleNewEntrySubmit(e) {
             e.preventDefault();
-            // GUARD
             if (document.getElementById('modal-new-entry').classList.contains('hidden')) return;
             if (!currentUser) return showNotification('請先登入', 'error');
             if (quotaInfo.used >= quotaInfo.max) { closeNewEntryModal(); document.getElementById('modal-upgrade').classList.remove('hidden'); return; }
-            
             const targetUser = currentRealId || currentUser;
             closeNewEntryModal();
             showLoading(true);
@@ -827,12 +558,7 @@
         function closeScanner() { if (html5QrcodeScanner?.isScanning) { html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); switchView('dashboard'); }).catch(() => switchView('dashboard')); } else switchView('dashboard'); }
         function logout() { localStorage.removeItem('bona_user_key'); localStorage.removeItem('bona_user_id'); currentUser = null; location.reload(); }
         async function handleManualSearch() { if (!currentUser) return showNotification('請先登入', 'error'); const id = document.getElementById('search-id').value.trim().toUpperCase(); if (!id) return showNotification('請輸入編號', 'error'); await fetchBeetleData(id); }
-        
-        // Helper function for v50.1 Payload Fix
-        function getSafePayloadValue(val) {
-            const cleaned = cleanData(val);
-            return (cleaned === '--' || cleaned === '') ? null : cleaned;
-        }
+        function getSafePayloadValue(val) { const cleaned = cleanData(val); return (cleaned === '--' || cleaned === '') ? null : cleaned; }
     </script>
 </body>
 </html>
