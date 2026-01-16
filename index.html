@@ -21,12 +21,13 @@
         }
     </script>
     <style>
-        /* 1. APP SHELL LOCK */
+        /* 1. APP SHELL LOCK - 防止頁面整體回彈 */
         html { height: 100%; overflow: hidden; background-color: #0f0f0f; }
         body { 
             height: 100%; width: 100%; margin: 0; padding: 0; 
             background-color: #0f0f0f; color: #e5e5e5; 
-            overflow: hidden; overscroll-behavior: none; 
+            overflow: hidden; 
+            overscroll-behavior: none; 
             -webkit-tap-highlight-color: transparent; 
         }
         
@@ -36,26 +37,30 @@
             margin: 0 auto; position: relative; background-color: #0f0f0f;
         }
 
-        /* 2. FIXED HEADER */
+        /* 2. FIXED HEADER - 絕對置頂 */
         .fixed-header-wrapper {
             position: absolute; top: 0; left: 0; right: 0; z-index: 50;
             background-color: rgba(15, 15, 15, 0.98);
             border-bottom: 1px solid #333;
-            padding-top: max(env(safe-area-inset-top), 20px);
+            padding-top: max(env(safe-area-inset-top), 20px); 
             min-height: 140px; 
             display: flex; flex-direction: column; justify-content: center;
-            pointer-events: none;
         }
+        /* Allow clicks on header buttons */
         .fixed-header-wrapper > * { pointer-events: auto; }
 
-        /* 3. SCROLL AREA */
+        /* 3. SCROLL AREA - 中間滾動區 */
         .scroll-content {
-            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             padding-top: 180px; 
             padding-bottom: 120px; 
-            padding-left: 1rem; padding-right: 1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
         
+        /* 4. FIXED BOTTOM - 絕對置底 */
         .fixed-bottom-wrapper {
             position: absolute; bottom: 0; left: 0; right: 0; z-index: 50;
             background-color: rgba(15, 15, 15, 0.95);
@@ -69,6 +74,9 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .quota-bar { transition: width 0.5s ease-out; }
         .lineage-link { color: #d4af37; text-decoration: underline; font-weight: bold; cursor: pointer; }
+        
+        /* Fix for buttons */
+        .nav-btn { cursor: pointer; position: relative; z-index: 100; }
     </style>
 </head>
 <body class="font-sans antialiased text-base">
@@ -84,7 +92,7 @@
     <div id="app-container">
 
         <!-- VIEW: LOGIN -->
-        <div id="view-login" class="flex h-full flex-col items-center justify-center p-6 z-10 relative overflow-y-auto">
+        <div id="view-login" class="flex h-full flex-col items-center justify-center p-6 z-10 relative">
             <div class="mb-8 text-center">
                 <div class="w-24 h-24 mx-auto mb-4 bg-bona-dark rounded-full border-2 border-bona-gold flex items-center justify-center overflow-hidden shadow-lg shadow-bona-gold/20">
                      <img src="logo.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="w-full h-full object-cover">
@@ -97,24 +105,23 @@
                     <label class="block text-bona-muted text-xs uppercase font-bold mb-2 tracking-wider">授權碼 (License Key)</label>
                     <input type="text" id="login-license" class="w-full bg-bona-black border border-gray-700 text-white rounded-lg p-4 focus:outline-none focus:border-bona-gold transition-colors text-center font-mono tracking-widest text-lg" placeholder="輸入授權碼">
                 </div>
-                <button type="button" onclick="window.handleLogin()" class="w-full gold-gradient text-black font-bold py-4 rounded-lg shadow-lg hover:brightness-110 transform active:scale-95 transition-all uppercase tracking-wider text-lg">
+                <button onclick="window.handleLogin()" class="w-full gold-gradient text-black font-bold py-4 rounded-lg shadow-lg hover:brightness-110 transform active:scale-95 transition-all uppercase tracking-wider text-lg">
                     驗證並登入
                 </button>
-                <p class="text-center text-xs text-gray-500">請輸入購買後取得的授權碼</p>
             </div>
         </div>
 
         <!-- VIEW: DASHBOARD -->
         <div id="view-dashboard" class="hidden h-full flex-col relative">
-            <header class="fixed-header-wrapper p-4">
-                <div class="flex justify-between items-center mb-3 w-full">
+            <header class="fixed-header-wrapper">
+                <div class="flex justify-between items-center mb-3 w-full px-4">
                     <div class="flex items-center space-x-3">
                         <div class="w-8 h-8 rounded-full border border-bona-gold flex items-center justify-center overflow-hidden"><img src="logo.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="w-full h-full object-cover"><i class="fa-solid fa-bug text-bona-gold text-xs hidden"></i></div>
                         <div class="flex flex-col"><span class="font-bold text-lg tracking-wide leading-tight">BONA<span class="text-bona-gold">SYSTEMS</span></span><span class="text-[10px] text-gray-500 font-mono" id="dashboard-license-display">--</span></div>
                     </div>
-                    <button type="button" onclick="window.logout()" class="text-bona-muted hover:text-white p-2"><i class="fa-solid fa-power-off text-lg"></i></button>
+                    <button onclick="window.logout()" class="text-bona-muted hover:text-white p-2 nav-btn"><i class="fa-solid fa-power-off text-lg"></i></button>
                 </div>
-                <div class="w-full px-1">
+                <div class="w-full px-5">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1"><span>個體額度</span><span id="quota-text">-- / --</span></div>
                     <div class="bg-gray-800 rounded-full h-4 w-full border border-gray-700 relative overflow-hidden shadow-inner"><div id="quota-bar-fill" class="bg-bona-gold h-full quota-bar" style="width: 0%;"></div></div>
                 </div>
@@ -122,11 +129,11 @@
 
             <main class="scroll-content">
                 <div class="grid grid-cols-2 gap-5 mb-8 mt-4">
-                    <button type="button" onclick="window.openScanner()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors border-bona-gold/30 border min-h-[150px]">
+                    <button onclick="window.openScanner()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors border-bona-gold/30 border min-h-[150px]">
                         <i class="fa-solid fa-qrcode text-4xl text-bona-gold"></i>
                         <span class="text-sm font-bold tracking-wider">掃描 QR Code</span>
                     </button>
-                    <button type="button" onclick="window.showNewEntryForm()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors min-h-[150px]">
+                    <button onclick="window.showNewEntryForm()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors min-h-[150px]">
                         <i class="fa-solid fa-plus text-4xl text-gray-400"></i>
                         <span class="text-sm font-bold tracking-wider text-gray-400">新蟲錄入</span>
                     </button>
@@ -134,8 +141,8 @@
                 <div class="glass-panel p-6 rounded-xl space-y-4">
                     <h3 class="text-bona-gold text-xs font-bold uppercase tracking-widest border-b border-gray-800 pb-2">數據檢索</h3>
                     <div class="relative">
-                        <input type="text" id="search-id" class="w-full bg-bona-black border border-gray-700 text-white rounded-lg p-4 pr-12 focus:outline-none focus:border-bona-gold transition-colors font-mono text-lg" placeholder="輸入編號 (如 D-24-01-001)" oninput="this.value = this.value.toUpperCase()">
-                        <button type="button" onclick="window.handleManualSearch()" class="absolute right-2 top-2 bottom-2 w-12 h-12 bg-bona-card rounded-md text-bona-gold flex items-center justify-center hover:bg-gray-700">
+                        <input type="text" id="search-id" class="w-full bg-bona-black border border-gray-700 text-white rounded-lg p-4 pr-12 focus:outline-none focus:border-bona-gold transition-colors font-mono text-lg" placeholder="輸入編號 (如 D-24...)" oninput="this.value = this.value.toUpperCase()">
+                        <button onclick="window.handleManualSearch()" class="absolute right-2 top-2 bottom-2 w-12 h-12 bg-bona-card rounded-md text-bona-gold flex items-center justify-center hover:bg-gray-700">
                             <i class="fa-solid fa-search text-xl"></i>
                         </button>
                     </div>
@@ -145,9 +152,9 @@
 
         <!-- VIEW: DETAIL -->
         <div id="view-detail" class="hidden h-full flex-col relative">
-            <header class="fixed-header-wrapper grid grid-cols-3 items-center p-4">
+            <header class="fixed-header-wrapper !grid !grid-cols-3 !items-center !gap-0 px-4">
                 <div class="flex justify-start">
-                    <button type="button" onclick="window.showDashboard()" class="text-gray-400 hover:text-white p-3 -ml-2 rounded-full hover:bg-white/10 transition-all cursor-pointer z-50 flex items-center">
+                    <button onclick="window.showDashboard()" class="nav-btn text-gray-400 hover:text-white p-3 -ml-2 rounded-full hover:bg-white/10 transition-all flex items-center">
                         <i class="fa-solid fa-arrow-left text-2xl"></i>
                     </button>
                 </div>
@@ -155,14 +162,15 @@
                     <span class="font-bold text-lg tracking-wide text-bona-gold truncate max-w-[150px]" id="detail-header-id">--</span>
                 </div>
                 <div class="flex justify-end space-x-1">
-                    <button type="button" onclick="window.showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2 z-50"><i class="fa-solid fa-qrcode text-xl"></i></button>
+                    <button onclick="window.showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2 nav-btn"><i class="fa-solid fa-qrcode text-xl"></i></button>
+                    <button onclick="window.toggleEditMode()" class="text-bona-gold hover:text-white p-2 nav-btn"><i class="fa-solid fa-pen-to-square text-xl"></i></button>
                 </div>
             </header>
 
             <main class="scroll-content space-y-4" style="padding-top: 150px;">
                 <div class="glass-panel p-5 rounded-xl border-l-4 border-l-bona-gold relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-fingerprint text-6xl text-white"></i></div>
-                    <div class="text-xs text-gray-500 uppercase tracking-widest mb-1">個體資訊 (Latest Status)</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mb-1">個體資訊</div>
                     <div class="text-3xl font-bold text-white font-mono mb-2" id="d-id">--</div>
                     <div class="flex space-x-6 text-sm text-gray-400">
                         <span><i class="fa-solid fa-dna text-bona-gold mr-1"></i> 累代: <span id="d-gen">--</span></span>
@@ -176,7 +184,7 @@
                 </div>
 
                 <div class="glass-panel p-4 rounded-xl border-t border-bona-gold/30">
-                    <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">成長分析 (Growth Rate)</h3>
+                    <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">成長分析</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div><div class="text-[10px] text-gray-500 mb-1">區間日增重</div><div class="font-mono text-lg text-bona-success font-bold" id="d-growth-interval">--</div></div>
                         <div><div class="text-[10px] text-gray-500 mb-1">全期日增重</div><div class="font-mono text-lg text-white" id="d-growth-total">--</div></div>
@@ -184,16 +192,16 @@
                 </div>
 
                 <div class="glass-panel p-4 rounded-xl">
-                    <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">血統資訊 (Lineage)</h3>
+                    <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">血統資訊</h3>
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2 border-b border-gray-800 pb-2 mb-2"><div class="text-xs text-gray-500 mb-1">累代 (Generation)</div><div class="font-mono text-base text-white" id="d-gen-detail">--</div></div>
-                        <div><div class="text-xs text-gray-500 mb-1">父代 (Sire)</div><div class="font-mono text-sm text-white" id="d-sire">--</div></div>
-                        <div><div class="text-xs text-gray-500 mb-1">母代 (Dam)</div><div class="font-mono text-sm text-white" id="d-dam">--</div></div>
+                        <div class="col-span-2 border-b border-gray-800 pb-2 mb-2"><div class="text-xs text-gray-500 mb-1">累代</div><div class="font-mono text-base text-white" id="d-gen-detail">--</div></div>
+                        <div><div class="text-xs text-gray-500 mb-1">父代</div><div class="font-mono text-sm text-white" id="d-sire">--</div></div>
+                        <div><div class="text-xs text-gray-500 mb-1">母代</div><div class="font-mono text-sm text-white" id="d-dam">--</div></div>
                     </div>
                 </div>
 
                 <div class="glass-panel p-4 rounded-xl">
-                    <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">飼育環境 (Environment)</h3>
+                    <h3 class="text-bona-gold text-xs font-bold uppercase mb-3 tracking-widest border-b border-gray-800 pb-2">飼育環境</h3>
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between border-b border-gray-800 pb-2"><span class="text-gray-500">容器</span><span class="text-white font-medium"><span id="d-box-type">--</span> (<span id="d-box-vol">--</span>)</span></div>
                         <div class="flex justify-between border-b border-gray-800 pb-2"><span class="text-gray-500">主食材</span><span class="text-white font-medium" id="d-sub-main">--</span></div>
@@ -203,21 +211,21 @@
                 </div>
 
                 <div id="history-section" class="hidden">
-                    <h3 class="text-bona-muted text-xs font-bold uppercase tracking-widest mb-3 mt-6 pl-1">歷史紀錄 (History)</h3>
+                    <h3 class="text-bona-muted text-xs font-bold uppercase tracking-widest mb-3 mt-6 pl-1">歷史紀錄</h3>
                     <div class="space-y-3" id="history-list"></div>
                 </div>
             </main>
 
             <div class="fixed-bottom-wrapper">
-                <button type="button" onclick="window.openUpdateModal()" class="w-full bg-white text-black font-bold py-4 rounded-lg shadow-lg hover:bg-gray-200 uppercase tracking-widest text-lg">記錄成長數據</button>
+                <button onclick="window.openUpdateModal()" class="w-full bg-white text-black font-bold py-4 rounded-lg shadow-lg hover:bg-gray-200 uppercase tracking-widest text-lg">記錄成長數據</button>
             </div>
         </div>
 
         <!-- SCANNER VIEW -->
         <div id="view-scanner" class="hidden fixed inset-0 z-[200] bg-black flex flex-col">
-            <div class="fixed-header-wrapper p-4 flex justify-between items-center">
+            <div class="fixed-header-wrapper p-4 flex justify-between items-center" style="min-height: 80px;">
                 <span class="text-white font-bold tracking-widest">掃描條碼</span>
-                <button type="button" onclick="window.closeScanner()" class="bg-gray-800 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
+                <button onclick="window.closeScanner()" class="bg-gray-800 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
             </div>
             <div id="reader" class="w-full h-full bg-black"></div>
         </div>
@@ -225,9 +233,52 @@
     </div>
 
     <!-- MODALS -->
-    <div id="modal-update" class="hidden fixed inset-0 z-[80] bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
+    <!-- NEW ENTRY MODAL -->
+    <div id="modal-new-entry" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-start sm:items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative my-8">
+            <button onclick="window.closeNewEntryModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
+            <h3 class="text-xl font-bold text-white mb-6 tracking-wide border-b border-gray-800 pb-4">新蟲 <span class="text-bona-gold">錄入</span></h3>
+            <form id="form-new-entry" onsubmit="window.handleNewEntrySubmit(event)" class="space-y-6">
+                <!-- Smart ID -->
+                <div class="bg-gray-900 p-6 rounded-lg border border-gray-700 space-y-4">
+                    <label class="block text-xs text-bona-gold uppercase font-bold tracking-widest text-center mb-2">設定物種代碼 (Prefix)</label>
+                    <input type="text" id="id-prefix" class="w-full bg-black border-2 border-bona-gold/50 rounded-xl text-white text-4xl p-4 outline-none text-center font-bold uppercase tracking-widest h-20 focus:border-bona-gold transition-colors" placeholder="D" value="D" oninput="this.value = this.value.toUpperCase(); window.updateIDPreview()">
+                    <div class="text-center"><button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定</button></div>
+                    <div id="id-details" class="hidden grid grid-cols-3 gap-3 pt-2 border-t border-gray-800">
+                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">年份</label><select id="id-year" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" onchange="window.updateIDPreview()"><option value="24">24</option><option value="25">25</option><option value="26">26</option></select></div>
+                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">批次</label><input type="number" id="id-batch" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="01" oninput="window.updateIDPreview()"></div>
+                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">序號</label><input type="number" id="id-seq" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="001" oninput="window.updateIDPreview()"></div>
+                    </div>
+                    <div class="text-center font-mono text-xl font-bold text-white tracking-widest bg-black/50 py-2 rounded mt-2" id="id-preview">D-24-01-001</div>
+                </div>
+                <!-- Dates -->
+                <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
+                <!-- Lineage -->
+                <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
+                <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
+                <!-- Container -->
+                <div class="space-y-4 pt-2 border-t border-gray-800">
+                    <div class="grid grid-cols-2 gap-5">
+                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="new-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
+                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器容量</label><select id="new-box-vol" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="100-150ml">100-150ml</option><option value="500ml">500ml</option><option value="700-800ml">700-800ml</option><option value="1000ml">1000ml</option><option value="1400-1500ml">1400-1500ml</option><option value="2200-2300ml">2200-2300ml</option><option value="3200-3500ml">3200-3500ml</option><option value="4L">4L</option><option value="6L">6L</option><option value="10L">10L</option></select></div>
+                    </div>
+                </div>
+                 <div class="space-y-4">
+                    <div><label class="block text-xs text-gray-500 uppercase mb-1">主食材</label><select id="new-sub-main" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
+                    <div class="grid grid-cols-2 gap-5">
+                        <div><label class="block text-xs text-gray-500 uppercase mb-1">副食材</label><select id="new-sub-sec" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無">無</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
+                        <div><label class="block text-xs text-gray-500 uppercase mb-1">添加劑</label><select id="new-booster" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無添加">無添加</option><option value="10g/10L">10g/10L</option><option value="20g/10L">20g/10L</option><option value="極限組">極限組</option></select></div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">確認錄入系統</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- UPDATE MODAL (Full Fields) -->
+    <div id="modal-update" class="hidden fixed inset-0 z-[150] bg-black/90 flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button type="button" onclick="window.closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
+            <button onclick="window.closeUpdateModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
             <h3 class="text-xl font-bold text-bona-gold mb-6 tracking-wide border-b border-gray-800 pb-4">更新數據</h3>
             <form id="form-update" onsubmit="window.handleUpdateSubmit(event)" class="space-y-6">
                 <input type="hidden" id="update-id">
@@ -251,51 +302,12 @@
         </div>
     </div>
 
-    <div id="modal-new-entry" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-start sm:items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-bona-card w-full max-w-sm rounded-xl p-6 border border-gray-700 shadow-2xl relative my-8">
-            <button type="button" onclick="window.closeNewEntryModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white p-2 z-50"><i class="fa-solid fa-times text-xl"></i></button>
-            <h3 class="text-xl font-bold text-white mb-6 tracking-wide border-b border-gray-800 pb-4">新蟲 <span class="text-bona-gold">錄入</span></h3>
-            <form id="form-new-entry" onsubmit="window.handleNewEntrySubmit(event)" class="space-y-6">
-                <!-- Smart ID -->
-                <div class="bg-gray-900 p-6 rounded-lg border border-gray-700 space-y-4">
-                    <label class="block text-xs text-bona-gold uppercase font-bold tracking-widest text-center mb-2">設定物種代碼 (Prefix)</label>
-                    <input type="text" id="id-prefix" class="w-full bg-black border-2 border-bona-gold/50 rounded-xl text-white text-4xl p-4 outline-none text-center font-bold uppercase tracking-widest h-20 focus:border-bona-gold transition-colors" placeholder="D" value="D" oninput="this.value = this.value.toUpperCase(); window.updateIDPreview()">
-                    <div class="text-center"><button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定</button></div>
-                    <div id="id-details" class="hidden grid grid-cols-3 gap-3 pt-2 border-t border-gray-800">
-                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">年份</label><select id="id-year" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" onchange="window.updateIDPreview()"><option value="24">24</option><option value="25">25</option><option value="26">26</option></select></div>
-                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">批次</label><input type="number" id="id-batch" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="01" oninput="window.updateIDPreview()"></div>
-                        <div><label class="block text-[10px] text-gray-500 mb-1 text-center">序號</label><input type="number" id="id-seq" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="001" oninput="window.updateIDPreview()"></div>
-                    </div>
-                    <div class="text-center font-mono text-xl font-bold text-white tracking-widest bg-black/50 py-2 rounded mt-2" id="id-preview">D-24-01-001</div>
-                </div>
-                <!-- Dates -->
-                <div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">孵化日</label><input type="date" id="new-hatch-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">量測日期</label><input type="date" id="new-check-date" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base focus:border-bona-gold outline-none h-12"></div></div>
-                <div class="space-y-4"><div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">累代</label><input type="text" id="new-gen" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none uppercase h-12" placeholder="如: CBF1"></div><div class="grid grid-cols-2 gap-5"><div><label class="block text-xs text-gray-500 uppercase mb-1">父 (Sire)</label><input type="text" id="new-sire" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div><div><label class="block text-xs text-gray-500 uppercase mb-1">母 (Dam)</label><input type="text" id="new-dam" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12" placeholder="尺寸/ID"></div></div></div>
-                <div><label class="block text-xs text-gray-400 uppercase mb-2 font-bold">初始體重 (g)</label><input type="number" step="0.1" id="new-weight" class="w-full bg-black border border-gray-700 rounded-lg p-4 text-white text-xl focus:border-bona-gold outline-none" required></div>
-                <!-- Container/Substrates same as Update modal -->
-                <div class="space-y-4 pt-2 border-t border-gray-800">
-                    <div class="grid grid-cols-2 gap-5">
-                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器種類</label><select id="new-box-type" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="布丁杯">布丁杯</option><option value="塑膠圓筒">塑膠圓筒</option><option value="塑膠方盒">塑膠方盒</option><option value="日規雙孔罐">日規雙孔罐</option><option value="日規單孔罐">日規單孔罐</option><option value="貝殼箱">貝殼箱</option><option value="祈星方盒">祈星方盒</option><option value="整理箱">整理箱</option><option value="其他">其他</option></select></div>
-                         <div><label class="block text-xs text-gray-500 uppercase mb-1">容器容量</label><select id="new-box-vol" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="100-150ml">100-150ml</option><option value="500ml">500ml</option><option value="700-800ml">700-800ml</option><option value="1000ml">1000ml</option><option value="1400-1500ml">1400-1500ml</option><option value="2200-2300ml">2200-2300ml</option><option value="3200-3500ml">3200-3500ml</option><option value="4L">4L</option><option value="6L">6L</option><option value="10L">10L</option></select></div>
-                    </div>
-                </div>
-                 <div class="space-y-4">
-                    <div><label class="block text-xs text-gray-500 uppercase mb-1">主食材 (Main)</label><select id="new-sub-main" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
-                    <div class="grid grid-cols-2 gap-5">
-                        <div><label class="block text-xs text-gray-500 uppercase mb-1">副食材 (Sec)</label><select id="new-sub-sec" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無">無</option><option value="BONA木屑">BONA木屑</option><option value="金蟲銀蟲木屑">金蟲銀蟲木屑</option><option value="AKD木屑">AKD木屑</option><option value="BEVO木屑">BEVO木屑</option><option value="P2木屑">P2木屑</option><option value="金剛木屑">金剛木屑</option><option value="白羊木屑">白羊木屑</option><option value="蟲心木屑">蟲心木屑</option><option value="蟲植木屑">蟲植木屑</option><option value="自發木屑">自發木屑</option><option value="好蟲多木屑">好蟲多木屑</option><option value="星空木屑">星空木屑</option><option value="小糕菌">小糕菌</option><option value="雲芝菌">雲芝菌</option><option value="育成土">育成土</option><option value="育成木屑">育成木屑</option><option value="重壓菌">重壓菌</option><option value="袖珍菌">袖珍菌</option><option value="廢木屑">廢木屑</option><option value="其他">其他</option></select></div>
-                        <div><label class="block text-xs text-gray-500 uppercase mb-1">添加劑 (Booster)</label><select id="new-booster" class="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-base outline-none h-12"><option value="無添加">無添加</option><option value="10g/10L">10g/10L</option><option value="20g/10L">20g/10L</option><option value="極限組">極限組</option></select></div>
-                    </div>
-                </div>
-                <button type="submit" class="w-full gold-gradient text-black font-bold py-4 rounded-lg mt-4 uppercase tracking-widest shadow-lg hover:brightness-110 text-lg">確認錄入系統</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Upgrade Modal & QR (Same) -->
+    <!-- Upgrade Modal & QR -->
     <div id="modal-upgrade" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md"><div class="w-full max-w-sm text-center relative"><i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i><h2 class="text-2xl font-bold text-white mb-2 tracking-widest">QUOTA EXCEEDED</h2><p class="text-gray-400 mb-8 text-sm leading-relaxed">您的飼育紀錄額度已達上限。<br>請聯繫管理員升級至 PRO+ 方案以解鎖更多空間。</p><button onclick="document.getElementById('modal-upgrade').classList.add('hidden')" class="border border-gray-600 text-gray-400 px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors uppercase text-xs tracking-widest">Close</button></div></div>
     <div id="modal-qr" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl"><button onclick="window.closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button><h3 class="text-xl font-bold text-black mb-1">QR CODE</h3><p class="text-sm text-gray-500 font-mono mb-4" id="qr-id-label">--</p><div id="qrcode" class="flex justify-center mb-4"></div><p class="text-xs text-gray-400">請截圖保存或列印</p></div></div>
 
     <script>
+        // CORE JS (Attached to Window)
         const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w"; 
         let currentUser = localStorage.getItem('bona_user_key') || null;
         let currentRealId = localStorage.getItem('bona_user_id') || null;
@@ -304,7 +316,6 @@
         let currentDetailData = null;
         let historyDataCache = []; 
 
-        // CLEAN & SAFE FUNCTIONS (Attached to window)
         window.cleanData = function(val) {
             if (val === null || val === undefined) return '--';
             if (typeof val === 'object') {
@@ -331,174 +342,86 @@
             return (cleaned === '--' || cleaned === '') ? null : cleaned;
         }
         
-        window.getDomVal = function(id) { 
+        window.getDomVal = function(id) {
             const el = document.getElementById(id);
-            if (!el) throw new Error(`找不到欄位: ${id}，請聯繫管理員。`);
-            return el.value;
+            return el ? el.value : '';
+        }
+
+        window.switchView = function(viewName) {
+            ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            const target = document.getElementById(`view-${viewName}`);
+            target.classList.remove('hidden');
+            if (viewName !== 'view-scanner') target.classList.add('flex');
+            if (viewName === 'dashboard') {
+                document.getElementById('search-id').value = '';
+                if(currentUser) window.verifyLicense(currentUser, true);
+            }
         }
 
         window.showLoading = function(show) { document.getElementById('loading-overlay').classList[show ? 'remove' : 'add']('hidden'); if(show) document.getElementById('loading-overlay').classList.add('flex'); }
         window.showNotification = function(msg, type) { const area = document.getElementById('notification-area'); const el = document.createElement('div'); el.className = `${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center justify-center transform transition-all duration-300 translate-y-[-20px] opacity-0`; el.innerText = msg; area.appendChild(el); requestAnimationFrame(() => el.classList.remove('translate-y-[-20px]', 'opacity-0')); setTimeout(() => { el.classList.add('opacity-0'); setTimeout(() => el.remove(), 300); }, 3000); }
-        window.switchView = function(viewName) { ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => document.getElementById(id).classList.add('hidden')); const target = document.getElementById(`view-${viewName}`); target.classList.remove('hidden'); if (viewName !== 'view-scanner') target.classList.add('flex'); if (viewName === 'dashboard') document.getElementById('search-id').value = ''; }
-        
-        // ... (Include all other logic functions: verifyLicense, fetchBeetleData, updateIDPreview, etc. same as before but attached to window) ...
         window.updateIDPreview = function() { const prefix = document.getElementById('id-prefix').value || 'D'; const year = document.getElementById('id-year').value; let batch = document.getElementById('id-batch').value || '00'; let seq = document.getElementById('id-seq').value || '000'; if (batch.length < 2) batch = '0' + batch; if (seq.length < 3) seq = ('000' + seq).slice(-3); const fullId = `${prefix}-${year}-${batch}-${seq}`; document.getElementById('id-preview').innerText = fullId; return fullId; }
-        window.updateDashboardUI = function() { if(!currentUser) return; const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser; document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`; const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100); document.getElementById('quota-bar-fill').style.width = `${percent}%`; document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`; }
+        window.updateDashboardUI = function() { if(!currentUser) return; const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser; document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`; const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100); document.getElementById('quota-bar-fill').style.width = `${percent}%`; document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`; const bar = document.getElementById('quota-bar-fill'); if (percent >= 90) bar.className = 'quota-bar h-full bg-bona-danger'; else bar.className = 'quota-bar h-full bg-bona-gold'; }
         
         window.verifyLicense = async function(key, silent) {
             if (!silent) window.showLoading(true);
-            try {
-                const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'auth', userId: key }) });
-                const text = await response.text();
-                let data = {}; try { data = JSON.parse(text); } catch(e) {}
-                if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
-                if (Array.isArray(data)) data = data[0];
-                const rawKey = data.key_found || data['License Key'] || data.id;
-                const rawStatus = data.status || data.Status;
-                const rawRealId = data.real_id || data.user_id || data.id;
-                const cleanKey = window.cleanData(rawKey);
-                const cleanStatus = window.cleanData(rawStatus).toString().trim();
-                const cleanRealId = window.cleanData(rawRealId);
-                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
-                const isActive = cleanStatus.toLowerCase().includes('active');
-                if (hasKey && isActive) {
-                    currentUser = key; currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key;
-                    localStorage.setItem('bona_user_key', key); localStorage.setItem('bona_user_id', currentRealId);
-                    quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 };
-                    window.updateDashboardUI();
-                    if (!silent) window.showNotification('登入成功', 'success');
-                    window.switchView('dashboard');
-                } else {
-                    if (!silent) window.showNotification(`授權無效`, 'error'); else window.logout();
-                }
-            } catch(e) { if(!silent) window.showNotification('連線錯誤', 'error'); } finally { if(!silent) window.showLoading(false); }
+            try { const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'auth', userId: key }) }); const text = await response.text(); let data = {}; try { data = JSON.parse(text); } catch(e) {} if (data.json) { try { data = JSON.parse(data.json); } catch(e){} } if (Array.isArray(data)) data = data[0]; const rawKey = data.key_found || data['License Key'] || data.id; const rawStatus = data.status || data.Status; const rawRealId = data.real_id || data.user_id || data.id; const cleanKey = window.cleanData(rawKey); const cleanStatus = window.cleanData(rawStatus).toString().trim(); const cleanRealId = window.cleanData(rawRealId); const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== ''; const isSuspended = cleanStatus.toLowerCase().includes('suspend') || cleanStatus.toLowerCase().includes('inactive'); const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended; if (hasKey && isActive) { currentUser = key; currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; localStorage.setItem('bona_user_key', key); localStorage.setItem('bona_user_id', currentRealId); quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 }; window.updateDashboardUI(); if (!silent) window.showNotification('登入成功', 'success'); window.switchView('dashboard'); } else { if (!silent) { alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`); window.showNotification(`授權無效`, 'error'); } else window.logout(); } } catch (error) { if (!silent) window.showNotification('連線錯誤', 'error'); if(silent) window.logout(); } finally { if (!silent) window.showLoading(false); }
         }
-
-        window.fetchBeetleData = async function(id) {
-            if (!currentUser) return window.showNotification('請先登入', 'error');
-            const targetUser = currentRealId || currentUser;
-            window.showLoading(true);
-            try {
-                const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'query', id: id, userId: targetUser }) });
-                const text = await response.text();
-                let data = {}; try { data = JSON.parse(text); } catch(e) { throw new Error('解析錯誤'); }
-                if (data.json) try { data = JSON.parse(data.json); } catch(e){}
-                let list = []; if (Array.isArray(data)) list = data; else if (data.id) list = [data];
-                
-                if (list.length > 0) {
-                    // Safe filter
-                    const valid = list.filter(r => r.id && window.cleanData(r.id) !== '--');
-                    if (valid.length > 0) {
-                        historyDataCache = valid; currentDetailData = valid[0];
-                        window.populateDetailView(valid[0]); window.renderHistoryList(valid);
-                        // window.calculateGrowth(valid[0], valid); // Simplified
-                        window.switchView('detail');
-                        document.getElementById('search-id').value = '';
-                    } else window.showNotification('資料結構異常', 'error');
-                } else window.showNotification('找不到資料', 'error');
-            } catch(e) { window.showNotification('系統錯誤', 'error'); } finally { window.showLoading(false); }
-        }
-
-        window.populateDetailView = function(data) {
-             document.getElementById('detail-header-id').innerText = window.cleanData(data.id);
-             document.getElementById('d-id').innerText = window.cleanData(data.id);
-             document.getElementById('d-gen').innerText = window.cleanData(data.generation);
-             document.getElementById('d-gen-detail').innerText = window.cleanData(data.generation);
-             document.getElementById('d-hatch').innerText = window.cleanData(data.date_hatch);
-             document.getElementById('d-weight').innerText = window.cleanData(data.weight);
-             document.getElementById('d-check').innerText = window.cleanData(data.date_check);
-             document.getElementById('d-sire').innerHTML = window.createLineageLink(data.sire_size);
-             document.getElementById('d-dam').innerHTML = window.createLineageLink(data.dam_size);
-             document.getElementById('d-box-type').innerText = window.cleanData(data.box_type);
-             document.getElementById('d-box-vol').innerText = window.cleanData(data.box_vol);
-             document.getElementById('d-sub-main').innerText = window.cleanData(data.sub_main);
-             document.getElementById('d-sub-sec').innerText = window.cleanData(data.sub_sec);
-             document.getElementById('d-booster').innerText = window.cleanData(data.booster);
-             document.getElementById('update-id').value = window.cleanData(data.id);
-        }
-
-        window.renderHistoryList = function(arr) {
-             const c = document.getElementById('history-list'); c.innerHTML=''; 
-             if(!arr || arr.length===0) { document.getElementById('history-section').classList.add('hidden'); return; } 
-             document.getElementById('history-section').classList.remove('hidden'); 
-             arr.forEach(i => { 
-                const d=document.createElement('div'); d.className='glass-panel p-4 rounded-xl relative'; 
-                d.innerHTML=`<div class="flex justify-between items-start"><div class="flex flex-col space-y-1 w-2/3"><span class="text-xs text-gray-500">${window.cleanData(i.date_check)}</span><div class="text-xs text-bona-muted leading-relaxed"><span class="text-white">${window.cleanData(i.sub_main)}</span>${window.cleanData(i.sub_sec)!=='--'?' + '+window.cleanData(i.sub_sec):''}<br>${window.cleanData(i.booster)!=='--'?'<span class="text-bona-gold">'+window.cleanData(i.booster)+'</span>':''}</div></div><div class="flex flex-col items-end w-1/3"><span class="text-white font-bold text-xl mb-1">${window.cleanData(i.weight)}g</span><div class="text-[10px] text-gray-500 text-right">${window.cleanData(i.box_type)}<br>${window.cleanData(i.box_vol)}</div></div></div>`; c.appendChild(d); 
-             }); 
-        }
-
+        window.consolidateData = function(rawList) { let final = { ...rawList[0] }; const isValid = (v) => { const s = window.cleanData(v); return s && s !== '--' && s !== ''; }; const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id']; staticFields.forEach(field => { if (!isValid(final[field])) { const found = rawList.find(r => isValid(r[field])); if (found) final[field] = found[field]; } }); return final; }
+        window.fetchBeetleData = async function(id) { if (!currentUser) return window.showNotification('請先登入', 'error'); const targetUser = currentRealId || currentUser; window.showLoading(true); try { const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'query', id: id, userId: targetUser }) }); const text = await response.text(); let data; try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); } if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} } const normalize = (obj) => { if (!obj || typeof obj !== 'object') return obj; const newObj = {}; Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]); return newObj; }; let rawList = []; if (Array.isArray(data)) rawList = data; else if (typeof data === 'object' && data !== null) { if (data.id || data.ID) rawList = [data]; else if (data.body || data.data || data.items) { const inner = data.body || data.data || data.items; rawList = Array.isArray(inner) ? inner : [inner]; } } if (rawList.length > 0) { const normalizedList = rawList.map(normalize); const validHistory = normalizedList.filter(r => r.id && window.cleanData(r.id) !== '--'); if (validHistory.length > 0) { historyDataCache = validHistory; const consolidatedRecord = window.consolidateData(validHistory); currentDetailData = consolidatedRecord; window.populateDetailView(consolidatedRecord); window.renderHistoryList(validHistory); window.calculateGrowth(consolidatedRecord, validHistory); window.switchView('detail'); document.getElementById('search-id').value = ''; } else { window.showNotification(`資料結構異常`, 'error'); } } else { window.showNotification(`找不到資料`, 'error'); } } catch (error) { window.showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); } }
+        window.calculateGrowth = function(current, history) { const curDate = new Date(window.cleanData(current.date_check)); const hatchDate = new Date(window.cleanData(current.date_hatch)); const curWeight = parseFloat(window.cleanData(current.weight)); let totalAvg = '--'; if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) { const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24); if (totalDays > 0) totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日'; } document.getElementById('d-growth-total').innerText = totalAvg; let intervalAvg = '--'; if (history && history.length > 1) { const prev = history[1]; const prevDate = new Date(window.cleanData(prev.date_check)); const prevWeight = parseFloat(window.cleanData(prev.weight)); if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) { const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24); const weightDiff = curWeight - prevWeight; if (intDays > 0) { intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日'; const el = document.getElementById('d-growth-interval'); el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold"; } } } document.getElementById('d-growth-interval').innerText = intervalAvg; }
+        window.populateDetailView = function(data) { document.getElementById('detail-header-id').innerText = window.cleanData(data.id); document.getElementById('d-id').innerText = window.cleanData(data.id); document.getElementById('d-gen').innerText = window.cleanData(data.generation); document.getElementById('d-gen-detail').innerText = window.cleanData(data.generation); document.getElementById('d-hatch').innerText = window.cleanData(data.date_hatch); document.getElementById('d-weight').innerText = window.cleanData(data.weight); document.getElementById('d-check').innerText = window.cleanData(data.date_check); document.getElementById('d-sire').innerHTML = window.createLineageLink(data.sire_size); document.getElementById('d-dam').innerHTML = window.createLineageLink(data.dam_size); document.getElementById('d-box-type').innerText = window.cleanData(data.box_type); document.getElementById('d-box-vol').innerText = window.cleanData(data.box_vol); document.getElementById('d-sub-main').innerText = window.cleanData(data.sub_main); document.getElementById('d-sub-sec').innerText = window.cleanData(data.sub_sec); document.getElementById('d-booster').innerText = window.cleanData(data.booster); document.getElementById('update-id').value = window.cleanData(data.id); }
+        window.renderHistoryList = function(arr) { const c = document.getElementById('history-list'); c.innerHTML=''; if(!arr || arr.length===0) { document.getElementById('history-section').classList.add('hidden'); return; } document.getElementById('history-section').classList.remove('hidden'); arr.forEach(i => { const d=document.createElement('div'); d.className='glass-panel p-4 rounded-xl relative'; const date = window.cleanData(i.date_check); const weight = window.cleanData(i.weight); const sub = window.cleanData(i.sub_main); const sub_sec = window.cleanData(i.sub_sec); const booster = window.cleanData(i.booster); const box = window.cleanData(i.box_type); const vol = window.cleanData(i.box_vol); d.innerHTML=`<div class="flex justify-between items-start"><div class="flex flex-col space-y-1 w-2/3"><span class="text-xs text-gray-500">${date}</span><div class="text-xs text-bona-muted leading-relaxed"><span class="text-white">${sub}</span>${sub_sec!=='--'&&sub_sec!=='無'?' + '+sub_sec:''}<br>${booster!=='--'&&booster!=='無添加'?'<span class="text-bona-gold">'+booster+'</span>':''}</div></div><div class="flex flex-col items-end w-1/3"><span class="text-white font-bold text-xl mb-1">${weight}g</span><div class="text-[10px] text-gray-500 text-right">${box}<br>${vol}</div></div></div>`; c.appendChild(d); }); }
+        
+        window.handleLogin = function() { const key = document.getElementById('login-license').value.trim(); if (!key) return window.showNotification('請輸入授權碼', 'error'); window.verifyLicense(key, false); }
         window.handleNewEntrySubmit = async function(e) {
             e.preventDefault();
             try {
                 if (!currentUser) throw new Error('請先登入');
-                if (quotaInfo.used >= quotaInfo.max) {
-                    window.closeNewEntryModal();
-                    document.getElementById('modal-upgrade').classList.remove('hidden');
-                    return;
-                }
+                if (quotaInfo.used >= quotaInfo.max) { window.closeNewEntryModal(); document.getElementById('modal-upgrade').classList.remove('hidden'); return; }
                 const targetUser = currentRealId || currentUser;
                 window.closeNewEntryModal();
                 window.showLoading(true);
                 const fullId = window.updateIDPreview();
-                // Safe DOM access
+                localStorage.setItem('last_prefix', window.getDomVal('id-prefix')); localStorage.setItem('last_year', window.getDomVal('id-year')); localStorage.setItem('last_batch', window.getDomVal('id-batch')); localStorage.setItem('last_seq', window.getDomVal('id-seq'));
+                
+                // Safe DOM reading with defaults
                 const payload = {
                     type: 'growth', mode: 'new', userId: targetUser, id: fullId,
-                    date_check: window.getDomVal('new-check-date'), date_hatch: window.getDomVal('new-hatch-date'),
-                    generation: window.getDomVal('new-gen').toUpperCase(),
-                    sire_size: window.getDomVal('new-sire') || 'N/A', dam_size: window.getDomVal('new-dam') || 'N/A',
-                    weight: parseFloat(window.getDomVal('new-weight') || 0),
-                    box_type: window.getDomVal('new-box-type'), box_vol: window.getDomVal('new-box-vol'),
-                    sub_main: window.getDomVal('new-sub-main'), sub_sec: window.getDomVal('new-sub-sec'), booster: window.getDomVal('new-booster')
+                    date_check: window.getDomVal('new-check-date') || new Date().toISOString().split('T')[0],
+                    date_hatch: window.getDomVal('new-hatch-date') || new Date().toISOString().split('T')[0],
+                    generation: (document.getElementById('new-gen')?.value || '').toUpperCase(),
+                    sire_size: document.getElementById('new-sire')?.value || 'N/A',
+                    dam_size: document.getElementById('new-dam')?.value || 'N/A',
+                    weight: parseFloat(document.getElementById('new-weight')?.value || 0),
+                    box_type: document.getElementById('new-box-type')?.value,
+                    box_vol: document.getElementById('new-box-vol')?.value,
+                    sub_main: document.getElementById('new-sub-main')?.value,
+                    sub_sec: document.getElementById('new-sub-sec')?.value,
+                    booster: document.getElementById('new-booster')?.value
                 };
+
                 const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (response.ok) {
-                    window.showNotification(`錄入成功`, 'success');
-                    quotaInfo.used += 1;
-                    window.updateDashboardUI();
-                    // Force refresh quota from server
-                    await window.verifyLicense(currentUser, true);
-                    
-                    const nextSeq = parseInt(document.getElementById('id-seq').value) + 1;
-                    document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
-                    window.updateIDPreview();
-                    setTimeout(async () => { await window.fetchBeetleData(fullId); }, 2000);
-                } else throw new Error(`HTTP ${response.status}`);
-            } catch (error) { window.showNotification(`錄入錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); }
+                if (response.ok) { window.showNotification(`錄入成功: ${fullId}`, 'success'); quotaInfo.used += 1; window.updateDashboardUI(); await window.verifyLicense(currentUser, true); const nextSeq = parseInt(document.getElementById('id-seq').value) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); window.updateIDPreview(); setTimeout(async () => { await window.fetchBeetleData(fullId); setTimeout(() => window.openQRModal(fullId), 500); }, 2000); } else throw new Error(`HTTP ${response.status}`);
+            } catch (error) { console.error(error); window.showNotification(`錄入錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); }
         }
 
         window.handleUpdateSubmit = async function(e) {
             e.preventDefault();
-            const id = window.getDomVal('update-id');
-            const payload = {
-                 type: 'growth', mode: 'update', id: id, userId: currentRealId || currentUser,
-                 weight: parseFloat(window.getDomVal('update-weight')), date_check: window.getDomVal('update-date'),
-                 // Inheritance
-                 date_hatch: window.getSafePayloadValue(currentDetailData?.date_hatch),
-                 generation: window.getSafePayloadValue(currentDetailData?.generation),
-                 sire_size: window.getSafePayloadValue(currentDetailData?.sire_size),
-                 dam_size: window.getSafePayloadValue(currentDetailData?.dam_size),
-                 // Form values
-                 sub_main: window.getSafePayloadValue(document.getElementById('update-sub').value === 'Keep' ? currentDetailData?.sub_main : document.getElementById('update-sub').value),
-                 // ... (Simplified for brevity, logic remains same as v58) ...
-                 box_type: window.getSafePayloadValue(document.getElementById('update-box-type').value === 'Keep' ? currentDetailData?.box_type : document.getElementById('update-box-type').value),
-                 box_vol: window.getSafePayloadValue(document.getElementById('update-box-vol').value === 'Keep' ? currentDetailData?.box_vol : document.getElementById('update-box-vol').value),
-                 sub_sec: window.getSafePayloadValue(document.getElementById('update-sub-sec').value === 'Keep' ? currentDetailData?.sub_sec : document.getElementById('update-sub-sec').value),
-                 booster: window.getSafePayloadValue(document.getElementById('update-booster').value === 'None' ? currentDetailData?.booster : document.getElementById('update-booster').value)
-            };
-            
+            if (document.getElementById('modal-update').classList.contains('hidden')) return;
+            if (!currentUser) return window.showNotification('請先登入', 'error');
+            const targetUser = currentRealId || currentUser;
             window.closeUpdateModal(); window.showLoading(true);
-            try {
-                const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
-                if(res.ok) { window.showNotification('更新成功', 'success'); setTimeout(() => window.fetchBeetleData(id), 1500); }
-                else throw new Error('Update Failed');
-            } catch(e) { window.showNotification('更新失敗', 'error'); } finally { window.showLoading(false); }
+            const id = window.getDomVal('update-id'); const weight = window.getDomVal('update-weight'); const checkDate = window.getDomVal('update-date');
+            let sub = document.getElementById('update-sub').value; let subSec = document.getElementById('update-sub-sec').value; let boxType = document.getElementById('update-box-type').value; let boxVol = document.getElementById('update-box-vol').value; let booster = document.getElementById('update-booster').value;
+            if (currentDetailData) { if (sub === 'Keep') sub = window.cleanData(currentDetailData.sub_main); if (subSec === 'Keep') subSec = window.cleanData(currentDetailData.sub_sec); if (boxType === 'Keep') boxType = window.cleanData(currentDetailData.box_type); if (boxVol === 'Keep') boxVol = window.cleanData(currentDetailData.box_vol); if (booster === 'None') booster = window.cleanData(currentDetailData.booster); }
+            const payload = { type: 'growth', mode: 'update', id: id, userId: targetUser, weight: parseFloat(weight), date_check: checkDate, date_hatch: window.getSafePayloadValue(currentDetailData?.date_hatch), generation: window.getSafePayloadValue(currentDetailData?.generation), sire_size: window.getSafePayloadValue(currentDetailData?.sire_size), dam_size: window.getSafePayloadValue(currentDetailData?.dam_size), sub_main: window.getSafePayloadValue(sub), sub_sec: window.getSafePayloadValue(subSec), box_type: window.getSafePayloadValue(boxType), box_vol: window.getSafePayloadValue(boxVol), booster: window.getSafePayloadValue(booster) };
+            try { const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)}); if(res.ok) { window.showNotification('更新成功', 'success'); document.getElementById('d-weight').innerText = weight; await window.verifyLicense(currentUser, true); setTimeout(() => window.fetchBeetleData(id), 1500); } else throw new Error(res.status); } catch(e) { window.showNotification('更新失敗', 'error'); } finally { window.showLoading(false); }
         }
 
-        // Utils
-        window.handleLogin = function() { const key = document.getElementById('login-license').value.trim(); if (!key) return window.showNotification('請輸入授權碼', 'error'); window.verifyLicense(key, false); }
         window.logout = function() { localStorage.removeItem('bona_user_key'); localStorage.removeItem('bona_user_id'); currentUser = null; location.reload(); }
-        window.handleManualSearch = async function() { if (!currentUser) return window.showNotification('請先登入', 'error'); const id = document.getElementById('search-id').value.trim().toUpperCase(); if (!id) return window.showNotification('請輸入編號', 'error'); await window.fetchBeetleData(id); }
-        window.showNewEntryForm = function() { if (quotaInfo.used >= quotaInfo.max) { document.getElementById('modal-upgrade').classList.remove('hidden'); return; } document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; window.updateIDPreview(); document.getElementById('modal-new-entry').classList.remove('hidden'); }
+        window.handleManualSearch = async function() { if (!currentUser) return window.showNotification('請先登入', 'error'); let id = document.getElementById('search-id').value.trim().toUpperCase(); const cleanInput = id.replace(/[^A-Z0-9]/g, ''); if (cleanInput.length === 7 && /^\d+$/.test(cleanInput)) { id = `D-${cleanInput.substring(0, 2)}-${cleanInput.substring(2, 4)}-${cleanInput.substring(4)}`; window.showNotification(`自動修正 ID 為: ${id}`, 'success'); } else if (cleanInput.length >= 8) { const suffix = cleanInput.slice(-7); const prefix = cleanInput.slice(0, -7); id = `${prefix}-${suffix.substring(0, 2)}-${suffix.substring(2, 4)}-${suffix.substring(4)}`; } if (!id) return window.showNotification('請輸入編號', 'error'); await window.fetchBeetleData(id); }
+        window.showNewEntryForm = function() { document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; window.updateIDPreview(); const lastSeq = localStorage.getItem('last_seq'); if (lastSeq) { const nextSeq = parseInt(lastSeq) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); window.updateIDPreview(); } document.getElementById('modal-new-entry').classList.remove('hidden'); }
         window.openUpdateModal = function() { const today = new Date().toISOString().split('T')[0]; document.getElementById('update-date').value = today; document.getElementById('modal-update').classList.remove('hidden'); }
         window.closeUpdateModal = function() { document.getElementById('modal-update').classList.add('hidden'); }
         window.closeNewEntryModal = function() { document.getElementById('modal-new-entry').classList.add('hidden'); }
@@ -517,7 +440,9 @@
             const today = new Date().toISOString().split('T')[0]; 
             document.getElementById('new-check-date').value = today;
             document.getElementById('new-hatch-date').value = today;
-            if (currentUser) window.verifyLicense(currentUser, true); else window.switchView('login');
+            
+            if (currentUser) window.verifyLicense(currentUser, true); 
+            else window.switchView('login');
         });
     </script>
 </body>
