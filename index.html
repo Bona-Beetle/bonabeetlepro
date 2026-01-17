@@ -15,12 +15,22 @@
         html { height: 100%; overflow: hidden; background-color: #0f0f0f; }
         body { height: 100%; width: 100%; margin: 0; padding: 0; background-color: #0f0f0f; color: #e5e5e5; overflow: hidden; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
         #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 480px; margin: 0 auto; position: relative; background-color: #0f0f0f; }
+        
+        /* HEADER */
         .fixed-header-wrapper { position: absolute; top: 0; left: 0; right: 0; z-index: 50; background-color: rgba(15, 15, 15, 0.98); border-bottom: 1px solid #333; padding-top: max(env(safe-area-inset-top), 20px); min-height: 140px; display: flex; flex-direction: column; justify-content: center; }
         .fixed-header-wrapper * { pointer-events: auto; }
-        .detail-header { position: absolute; top: 0; left: 0; right: 0; z-index: 60; background-color: rgba(15, 15, 15, 0.98); border-bottom: 1px solid #333; padding-top: max(env(safe-area-inset-top), 15px); height: 90px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-left: 1rem; padding-right: 1rem; }
-        .dashboard-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: 180px; padding-bottom: 120px; padding-left: 1rem; padding-right: 1rem; }
+        
+        /* CONTENT PADDING ADJUSTMENT (Fix for Button Overlap) */
+        .dashboard-content { 
+            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; 
+            padding-top: 220px; /* Pushed down significantly */
+            padding-bottom: 120px; padding-left: 1rem; padding-right: 1rem; 
+        }
+        
         .detail-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: 110px; padding-bottom: 120px; padding-left: 1rem; padding-right: 1rem; }
         .fixed-bottom-wrapper { position: absolute; bottom: 0; left: 0; right: 0; z-index: 50; background-color: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; padding: 1rem; padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+        
+        /* UTILS */
         .gold-gradient { background: linear-gradient(135deg, #d4af37 0%, #a68a2e 100%); }
         .glass-panel { background: rgba(38, 38, 38, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); }
         .loader { border: 4px solid #333; border-top: 4px solid #d4af37; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
@@ -53,6 +63,8 @@
                 <div><label class="block text-bona-muted text-xs uppercase font-bold mb-2 tracking-wider">授權碼 (License Key)</label><input type="text" id="login-license" class="w-full bg-bona-black border border-gray-700 text-white rounded-lg p-4 focus:outline-none focus:border-bona-gold transition-colors text-center font-mono tracking-widest text-lg" placeholder="輸入授權碼 (區分大小寫)"></div>
                 <button onclick="window.handleLogin()" class="w-full gold-gradient text-black font-bold py-4 rounded-lg shadow-lg hover:brightness-110 text-lg">驗證並登入</button>
             </div>
+            <!-- VERSION TAG -->
+            <p class="absolute bottom-4 text-gray-600 text-xs font-mono">v67.0 Stable</p>
         </div>
 
         <!-- DASHBOARD -->
@@ -71,7 +83,7 @@
                 </div>
             </header>
             <main class="dashboard-content">
-                <div class="grid grid-cols-2 gap-5 mb-8 mt-4">
+                <div class="grid grid-cols-2 gap-5 mb-8">
                     <button onclick="window.openScanner()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors border-bona-gold/30 border min-h-[150px]"><i class="fa-solid fa-qrcode text-4xl text-bona-gold"></i><span class="text-sm font-bold tracking-wider">掃描 QR Code</span></button>
                     <button onclick="window.showNewEntryForm()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors min-h-[150px]"><i class="fa-solid fa-plus text-4xl text-gray-400"></i><span class="text-sm font-bold tracking-wider text-gray-400">新蟲錄入</span></button>
                 </div>
@@ -87,7 +99,7 @@
 
         <!-- DETAIL -->
         <div id="view-detail" class="hidden h-full flex-col relative">
-            <header class="detail-header">
+            <header class="fixed-header-wrapper !grid !grid-cols-3 !items-center !gap-0 px-4" style="height: 100px; min-height: 100px;">
                 <div class="flex justify-start"><button onclick="window.showDashboard()" class="nav-btn text-gray-400 hover:text-white p-3 -ml-2 rounded-full hover:bg-white/10 z-50"><i class="fa-solid fa-arrow-left text-2xl"></i></button></div>
                 <div class="flex justify-center"><span class="font-bold text-lg tracking-wide text-bona-gold truncate max-w-[150px]" id="detail-header-id">--</span></div>
                 <div class="flex justify-end space-x-1"><button onclick="window.showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2 nav-btn"><i class="fa-solid fa-qrcode text-xl"></i></button></div>
@@ -135,7 +147,6 @@
             <div class="fixed-bottom-wrapper"><button onclick="window.openUpdateModal()" class="w-full bg-white text-black font-bold py-4 rounded-lg shadow-lg hover:bg-gray-200 uppercase tracking-widest text-lg">記錄成長數據</button></div>
         </div>
 
-        <!-- SCANNER & MODALS -->
         <div id="view-scanner" class="hidden fixed inset-0 z-[200] bg-black flex flex-col">
             <div class="fixed-header-wrapper p-4 flex justify-between items-center" style="min-height: 80px;">
                 <span class="text-white font-bold tracking-widest">掃描條碼</span><button onclick="window.closeScanner()" class="bg-gray-800 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
@@ -195,24 +206,9 @@
                 </form>
             </div>
         </div>
-
-        <div id="modal-upgrade" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
-            <div class="w-full max-w-sm text-center relative">
-                <i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i>
-                <h2 class="text-2xl font-bold text-white mb-2 tracking-widest">QUOTA EXCEEDED</h2>
-                <p class="text-gray-400 mb-8 text-sm leading-relaxed">您的飼育紀錄額度已達上限。<br>請聯繫管理員升級至 PRO+ 方案以解鎖更多空間。</p>
-                <button onclick="document.getElementById('modal-upgrade').classList.add('hidden')" class="border border-gray-600 text-gray-400 px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors uppercase text-xs tracking-widest">Close</button>
-            </div>
-        </div>
-        <div id="modal-qr" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl">
-                <button onclick="window.closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button>
-                <h3 class="text-xl font-bold text-black mb-1">QR CODE</h3>
-                <p class="text-sm text-gray-500 font-mono mb-4" id="qr-id-label">--</p>
-                <div id="qrcode" class="flex justify-center mb-4"></div>
-                <p class="text-xs text-gray-400">請截圖保存或列印</p>
-            </div>
-        </div>
+        
+        <div id="modal-upgrade" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md"><div class="w-full max-w-sm text-center relative"><i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i><h2 class="text-2xl font-bold text-white mb-2 tracking-widest">QUOTA EXCEEDED</h2><p class="text-gray-400 mb-8 text-sm leading-relaxed">您的飼育紀錄額度已達上限。<br>請聯繫管理員升級至 PRO+ 方案以解鎖更多空間。</p><button onclick="document.getElementById('modal-upgrade').classList.add('hidden')" class="border border-gray-600 text-gray-400 px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors uppercase text-xs tracking-widest">Close</button></div></div>
+        <div id="modal-qr" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl"><button onclick="window.closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button><h3 class="text-xl font-bold text-black mb-1">QR CODE</h3><p class="text-sm text-gray-500 font-mono mb-4" id="qr-id-label">--</p><div id="qrcode" class="flex justify-center mb-4"></div><p class="text-xs text-gray-400">請截圖保存或列印</p></div></div>
 
     </div>
 
@@ -246,26 +242,9 @@
             return val;
         }
 
-        window.getSafePayloadValue = function(val) {
-            const cleaned = window.cleanData(val);
-            return (cleaned === '--' || cleaned === '') ? null : cleaned;
-        }
-        
-        window.getDomVal = function(id) { 
-            const el = document.getElementById(id);
-            return el ? el.value : ''; 
-        }
-
-        window.switchView = function(viewName) {
-            ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            const target = document.getElementById(`view-${viewName}`);
-            target.classList.remove('hidden');
-            if (viewName !== 'view-scanner') target.classList.add('flex');
-            if (viewName === 'dashboard') {
-                document.getElementById('search-id').value = '';
-            }
-        }
-
+        window.getSafePayloadValue = function(val) { const cleaned = window.cleanData(val); return (cleaned === '--' || cleaned === '') ? null : cleaned; }
+        window.getDomVal = function(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+        window.switchView = function(viewName) { ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => document.getElementById(id).classList.add('hidden')); const target = document.getElementById(`view-${viewName}`); target.classList.remove('hidden'); if (viewName !== 'view-scanner') target.classList.add('flex'); if (viewName === 'dashboard') { document.getElementById('search-id').value = ''; } }
         window.showLoading = function(show) { document.getElementById('loading-overlay').classList[show ? 'remove' : 'add']('hidden'); if(show) document.getElementById('loading-overlay').classList.add('flex'); }
         window.showNotification = function(msg, type) { const area = document.getElementById('notification-area'); const el = document.createElement('div'); el.className = `${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center justify-center transform transition-all duration-300 translate-y-[-20px] opacity-0`; el.innerText = msg; area.appendChild(el); requestAnimationFrame(() => el.classList.remove('translate-y-[-20px]', 'opacity-0')); setTimeout(() => { el.classList.add('opacity-0'); setTimeout(() => el.remove(), 300); }, 3000); }
         window.updateIDPreview = function() { const prefix = document.getElementById('id-prefix').value || 'D'; const year = document.getElementById('id-year').value; let batch = document.getElementById('id-batch').value || '00'; let seq = document.getElementById('id-seq').value || '000'; if (batch.length < 2) batch = '0' + batch; if (seq.length < 3) seq = ('000' + seq).slice(-3); const fullId = `${prefix}-${year}-${batch}-${seq}`; document.getElementById('id-preview').innerText = fullId; return fullId; }
@@ -279,40 +258,19 @@
                 let data = {}; try { data = JSON.parse(text); } catch(e) {}
                 if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
                 if (Array.isArray(data)) data = data[0];
-
                 const rawKey = data.key_found || data['License Key'] || data.id;
                 const rawStatus = data.status || data.Status;
                 const rawRealId = data.real_id || data.user_id || data.id;
-
                 const cleanKey = window.cleanData(rawKey);
                 const cleanStatus = window.cleanData(rawStatus).toString().trim();
                 const cleanRealId = window.cleanData(rawRealId);
-
-                // v65.0 FIX: Strict Case Comparison
-                const keyMatch = cleanKey === key; 
+                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
                 const isActive = cleanStatus.toLowerCase().includes('active');
-
-                if (keyMatch && isActive) {
-                    currentUser = key; 
-                    currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; 
-                    localStorage.setItem('bona_user_key', key); 
-                    localStorage.setItem('bona_user_id', currentRealId); 
-                    quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 }; 
-                    window.updateDashboardUI(); 
-                    if (!silent) { 
-                        window.showNotification('登入成功', 'success'); 
-                        window.switchView('dashboard'); 
-                    }
-                } else { 
-                    if (!silent) { 
-                        let msg = !keyMatch ? "授權碼不符 (大小寫敏感)" : "帳號狀態異常";
-                        alert(`驗證失敗: ${msg}`); 
-                        window.showNotification(msg, 'error'); 
-                    } else window.logout(); 
-                }
+                if (hasKey && isActive) {
+                    currentUser = key; currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; localStorage.setItem('bona_user_key', key); localStorage.setItem('bona_user_id', currentRealId); quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 }; window.updateDashboardUI(); if (!silent) window.showNotification('登入成功', 'success'); window.switchView('dashboard');
+                } else { if (!silent) { alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`); window.showNotification(`授權無效`, 'error'); } else window.logout(); }
             } catch(e) { if(!silent) window.showNotification('連線錯誤', 'error'); } finally { if(!silent) window.showLoading(false); }
         }
-
         window.consolidateData = function(rawList) { let final = { ...rawList[0] }; const isValid = (v) => { const s = window.cleanData(v); return s && s !== '--' && s !== ''; }; const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id']; staticFields.forEach(field => { if (!isValid(final[field])) { const found = rawList.find(r => isValid(r[field])); if (found) final[field] = found[field]; } }); return final; }
         window.fetchBeetleData = async function(id) { if (!currentUser) return window.showNotification('請先登入', 'error'); const targetUser = currentRealId || currentUser; window.showLoading(true); try { const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'query', id: id, userId: targetUser }) }); const text = await response.text(); let data; try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); } if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} } const normalize = (obj) => { if (!obj || typeof obj !== 'object') return obj; const newObj = {}; Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]); return newObj; }; let rawList = []; if (Array.isArray(data)) rawList = data; else if (typeof data === 'object' && data !== null) { if (data.id || data.ID) rawList = [data]; else if (data.body || data.data || data.items) { const inner = data.body || data.data || data.items; rawList = Array.isArray(inner) ? inner : [inner]; } } if (rawList.length > 0) { const normalizedList = rawList.map(normalize); const validHistory = normalizedList.filter(r => r.id && window.cleanData(r.id) !== '--'); if (validHistory.length > 0) { historyDataCache = validHistory; const consolidatedRecord = window.consolidateData(validHistory); currentDetailData = consolidatedRecord; window.populateDetailView(consolidatedRecord); window.renderHistoryList(validHistory); window.calculateGrowth(consolidatedRecord, validHistory); window.switchView('detail'); document.getElementById('search-id').value = ''; } else { window.showNotification(`資料結構異常`, 'error'); } } else { window.showNotification(`找不到資料`, 'error'); } } catch (error) { window.showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); } }
         window.calculateGrowth = function(current, history) { const curDate = new Date(window.cleanData(current.date_check)); const hatchDate = new Date(window.cleanData(current.date_hatch)); const curWeight = parseFloat(window.cleanData(current.weight)); let totalAvg = '--'; if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) { const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24); if (totalDays > 0) totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日'; } document.getElementById('d-growth-total').innerText = totalAvg; let intervalAvg = '--'; if (history && history.length > 1) { const prev = history[1]; const prevDate = new Date(window.cleanData(prev.date_check)); const prevWeight = parseFloat(window.cleanData(prev.weight)); if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) { const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24); const weightDiff = curWeight - prevWeight; if (intDays > 0) { intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日'; const el = document.getElementById('d-growth-interval'); el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold"; } } } document.getElementById('d-growth-interval').innerText = intervalAvg; }
@@ -321,7 +279,7 @@
         
         window.handleLogin = function() { const key = document.getElementById('login-license').value.trim(); if (!key) return window.showNotification('請輸入授權碼', 'error'); window.verifyLicense(key, false); }
         
-        // v65.1 FIX: NO FETCH AFTER NEW ENTRY (Trust Local Data)
+        // v67.0 Zero Latency Logic: Trust Local Data, Don't Fetch
         window.handleNewEntrySubmit = async function(e) {
             e.preventDefault();
             try {
@@ -333,7 +291,7 @@
                 const fullId = window.updateIDPreview();
                 localStorage.setItem('last_prefix', window.getDomVal('id-prefix')); localStorage.setItem('last_year', window.getDomVal('id-year')); localStorage.setItem('last_batch', window.getDomVal('id-batch')); localStorage.setItem('last_seq', window.getDomVal('id-seq'));
                 
-                // Construct Data Object (Local)
+                // Construct Local Record (Trust user input)
                 const newRecord = {
                     id: fullId,
                     userId: targetUser,
@@ -350,24 +308,22 @@
                     booster: window.getDomVal('new-booster')
                 };
 
-                // Prepare Payload for Server
                 const payload = { type: 'growth', mode: 'new', ...newRecord };
 
                 const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                
                 if (response.ok) { 
                     window.showNotification(`錄入成功: ${fullId}`, 'success'); 
                     
-                    // 1. Update Quota (Local Trust)
+                    // 1. Quota + 1 (Local)
                     quotaInfo.used += 1; 
                     window.updateDashboardUI(); 
                     
-                    // 2. Increment Seq (Local)
+                    // 2. Seq + 1 (Local)
                     const nextSeq = parseInt(document.getElementById('id-seq').value) + 1; 
                     document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); 
                     window.updateIDPreview(); 
                     
-                    // 3. Show QR Code & Detail (Local Trust - NO FETCH)
+                    // 3. Show Result Directly (NO FETCH)
                     historyDataCache = [newRecord];
                     currentDetailData = newRecord;
                     window.populateDetailView(newRecord);
@@ -375,7 +331,6 @@
                     window.calculateGrowth(newRecord, []);
                     window.switchView('detail');
                     setTimeout(() => window.openQRModal(fullId), 500);
-
                 } else throw new Error(`HTTP ${response.status}`);
             } catch (error) { console.error(error); window.showNotification(`錄入錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); }
         }
@@ -391,7 +346,7 @@
             if (currentDetailData) { if (sub === 'Keep') sub = window.cleanData(currentDetailData.sub_main); if (subSec === 'Keep') subSec = window.cleanData(currentDetailData.sub_sec); if (boxType === 'Keep') boxType = window.cleanData(currentDetailData.box_type); if (boxVol === 'Keep') boxVol = window.cleanData(currentDetailData.box_vol); if (booster === 'None') booster = window.cleanData(currentDetailData.booster); }
             const payload = { type: 'growth', mode: 'update', id: id, userId: targetUser, weight: parseFloat(weight), date_check: checkDate, date_hatch: window.getSafePayloadValue(currentDetailData?.date_hatch), generation: window.getSafePayloadValue(currentDetailData?.generation), sire_size: window.getSafePayloadValue(currentDetailData?.sire_size), dam_size: window.getSafePayloadValue(currentDetailData?.dam_size), sub_main: window.getSafePayloadValue(sub), sub_sec: window.getSafePayloadValue(subSec), box_type: window.getSafePayloadValue(boxType), box_vol: window.getSafePayloadValue(boxVol), booster: window.getSafePayloadValue(booster) };
             try { const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)}); if(res.ok) { window.showNotification('更新成功', 'success'); document.getElementById('d-weight').innerText = weight; 
-            // Update: We still fetch here because it's an existing record
+            // Keep fetching for updates as they are usually faster than creations
             setTimeout(() => window.fetchBeetleData(id), 1500); } else throw new Error(res.status); } catch(e) { window.showNotification('更新失敗', 'error'); } finally { window.showLoading(false); }
         }
 
@@ -405,7 +360,7 @@
         window.showQRCodeForCurrent = function() { currentDetailData && currentDetailData.id ? window.openQRModal(window.cleanData(currentDetailData.id)) : window.showNotification('無資料', 'error'); }
         window.openQRModal = function(id) { const modal = document.getElementById('modal-qr'); const container = document.getElementById('qrcode'); container.innerHTML = ''; document.getElementById('qr-id-label').innerText = id; new QRCode(container, { text: id, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H }); modal.classList.remove('hidden'); }
         window.closeQRModal = function() { document.getElementById('modal-qr').classList.add('hidden'); }
-        window.openScanner = function() { window.switchView('scanner'); setTimeout(() => { if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader"); html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => { html5QrcodeScanner.stop().then(() => { window.closeScanner(); let cleanId = decodedText.trim().toUpperCase(); if (cleanId.includes('/') || cleanId.includes('HTTP')) { const parts = cleanId.split('/'); cleanId = parts[parts.length - 1]; } window.showNotification(`已讀取: ${cleanId}`, 'info'); window.fetchBeetleData(cleanId); }); }, (error) => {}).catch(err => { window.showNotification('無法開啟相機', 'error'); window.closeScanner(); }); }, 100); }
+        window.openScanner = function() { window.switchView('scanner'); setTimeout(() => { if (!html5QrcodeScanner && typeof Html5Qrcode !== 'undefined') html5QrcodeScanner = new Html5Qrcode("reader"); if(html5QrcodeScanner) { html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => { html5QrcodeScanner.stop().then(() => { window.closeScanner(); let cleanId = decodedText.trim().toUpperCase(); if (cleanId.includes('/') || cleanId.includes('HTTP')) { const parts = cleanId.split('/'); cleanId = parts[parts.length - 1]; } window.showNotification(`已讀取: ${cleanId}`, 'info'); window.fetchBeetleData(cleanId); }); }, (error) => {}).catch(err => { window.showNotification('無法開啟相機(需HTTPS)', 'error'); window.closeScanner(); }); } else { window.showNotification('掃描器初始化失敗', 'error'); window.closeScanner(); } }, 100); }
         window.closeScanner = function() { if (html5QrcodeScanner?.isScanning) { html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); window.switchView('dashboard'); }).catch(() => window.switchView('dashboard')); } else window.switchView('dashboard'); }
         window.createLineageLink = function(text) { const val = window.cleanData(text); if (!val || val === '--' || val === '') return '--'; if (val.length > 2 && /[A-Z0-9]/.test(val)) { return `<span class="lineage-link" onclick="window.handleLineageClick('${val}')">${val}</span>`; } return val; }
         window.handleLineageClick = async function(id) { window.showNotification(`正在跳轉至親代: ${id}`, 'info'); await window.fetchBeetleData(id); }
