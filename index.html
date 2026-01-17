@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BONA BEETLE PRO</title>
+    <!-- BRANDING UPDATE: Changed PRO to LITE -->
+    <title>BONA BEETLE LITE</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- HTML5-QRCode Scanner -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- QRCode Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <script>
@@ -17,6 +22,7 @@
         }
     </script>
     <style>
+        /* APP SHELL LOCK */
         html { height: 100%; overflow: hidden; background-color: #0f0f0f; }
         body { 
             height: 100%; width: 100%; margin: 0; padding: 0; 
@@ -31,8 +37,8 @@
             margin: 0 auto; position: relative; background-color: #0f0f0f;
         }
 
-        /* DASHBOARD HEADER (Vertical Layout for Logo + Quota) */
-        .dashboard-header {
+        /* 2. FIXED HEADER */
+        .fixed-header-wrapper {
             position: absolute; top: 0; left: 0; right: 0; z-index: 50;
             background-color: rgba(15, 15, 15, 0.98);
             border-bottom: 1px solid #333;
@@ -40,30 +46,16 @@
             min-height: 140px; 
             display: flex; flex-direction: column; justify-content: center;
         }
+        .fixed-header-wrapper * { pointer-events: auto; }
 
-        /* DETAIL HEADER (Horizontal Grid for Nav) - v66.0 FIXED */
-        .detail-header {
-            position: absolute; top: 0; left: 0; right: 0; z-index: 60; /* Higher Z-Index */
-            background-color: rgba(15, 15, 15, 0.98);
-            border-bottom: 1px solid #333;
-            padding-top: max(env(safe-area-inset-top), 15px);
-            height: 90px; /* Fixed shorter height */
-            display: grid; 
-            grid-template-columns: 1fr auto 1fr; /* Left-Center-Right Layout */
-            align-items: center;
+        /* 3. SCROLL AREA */
+        .scroll-content {
+            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding-top: 180px; 
+            padding-bottom: 120px; 
             padding-left: 1rem; padding-right: 1rem;
         }
-
-        /* SCROLL AREAS */
-        .dashboard-content {
-            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-            padding-top: 180px; padding-bottom: 120px; padding-left: 1rem; padding-right: 1rem;
-        }
-        .detail-content {
-            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-            padding-top: 110px; padding-bottom: 120px; padding-left: 1rem; padding-right: 1rem;
-        }
-
+        
         .fixed-bottom-wrapper {
             position: absolute; bottom: 0; left: 0; right: 0; z-index: 50;
             background-color: rgba(15, 15, 15, 0.95);
@@ -77,7 +69,8 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .quota-bar { transition: width 0.5s ease-out; }
         .lineage-link { color: #d4af37; text-decoration: underline; font-weight: bold; cursor: pointer; }
-        button { cursor: pointer; pointer-events: auto; }
+        button { cursor: pointer; }
+        input, select { -webkit-appearance: none; }
     </style>
 </head>
 <body class="font-sans antialiased text-base">
@@ -99,7 +92,8 @@
                      <img src="logo.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="w-full h-full object-cover">
                      <i class="fa-solid fa-bug text-4xl text-bona-gold hidden absolute"></i>
             </div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-widest">BONA <span class="text-bona-gold">BEETLE PRO</span></h1>
+                <!-- BRANDING UPDATE: LITE -->
+                <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-widest">BONA <span class="text-bona-gold">BEETLE LITE</span></h1>
             </div>
             <div class="w-full glass-panel p-8 rounded-xl shadow-2xl space-y-6">
                 <div>
@@ -114,13 +108,13 @@
 
         <!-- VIEW: DASHBOARD -->
         <div id="view-dashboard" class="hidden h-full flex-col relative">
-            <header class="dashboard-header p-4">
+            <header class="fixed-header-wrapper">
                 <div class="flex justify-between items-center mb-3 w-full px-4">
                     <div class="flex items-center space-x-3">
                         <div class="w-8 h-8 rounded-full border border-bona-gold flex items-center justify-center overflow-hidden"><img src="logo.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="w-full h-full object-cover"><i class="fa-solid fa-bug text-bona-gold text-xs hidden"></i></div>
                         <div class="flex flex-col"><span class="font-bold text-lg tracking-wide leading-tight">BONA<span class="text-bona-gold">SYSTEMS</span></span><span class="text-[10px] text-gray-500 font-mono" id="dashboard-license-display">--</span></div>
                     </div>
-                    <button onclick="window.logout()" class="text-bona-muted hover:text-white p-2"><i class="fa-solid fa-power-off text-lg"></i></button>
+                    <button onclick="window.logout()" class="text-bona-muted hover:text-white p-2 nav-btn"><i class="fa-solid fa-power-off text-lg"></i></button>
                 </div>
                 <div class="w-full px-5">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1"><span>個體額度</span><span id="quota-text">-- / --</span></div>
@@ -128,7 +122,7 @@
                 </div>
             </header>
 
-            <main class="dashboard-content">
+            <main class="scroll-content">
                 <div class="grid grid-cols-2 gap-5 mb-8 mt-4">
                     <button onclick="window.openScanner()" class="p-6 glass-panel rounded-xl flex flex-col items-center justify-center space-y-3 hover:bg-gray-800 transition-colors border-bona-gold/30 border min-h-[150px]">
                         <i class="fa-solid fa-qrcode text-4xl text-bona-gold"></i>
@@ -154,23 +148,21 @@
 
         <!-- VIEW: DETAIL -->
         <div id="view-detail" class="hidden h-full flex-col relative">
-            <!-- New Dedicated Header Class -->
-            <header class="detail-header">
+            <header class="fixed-header-wrapper grid grid-cols-3 items-center p-4 px-4">
                 <div class="flex justify-start">
-                    <!-- BACK BUTTON (Fix applied) -->
-                    <button onclick="window.showDashboard()" class="text-gray-400 hover:text-white p-4 rounded-full hover:bg-white/10 active:scale-95 transition-all flex items-center justify-center z-50">
-                        <i class="fa-solid fa-arrow-left text-3xl"></i>
+                    <button onclick="window.showDashboard()" class="nav-btn text-gray-400 hover:text-white p-3 -ml-2 rounded-full hover:bg-white/10 transition-all flex items-center">
+                        <i class="fa-solid fa-arrow-left text-2xl"></i>
                     </button>
                 </div>
                 <div class="flex justify-center">
                     <span class="font-bold text-lg tracking-wide text-bona-gold truncate max-w-[150px]" id="detail-header-id">--</span>
                 </div>
                 <div class="flex justify-end space-x-1">
-                    <button onclick="window.showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-3"><i class="fa-solid fa-qrcode text-2xl"></i></button>
+                    <button onclick="window.showQRCodeForCurrent()" class="text-bona-gold hover:text-white p-2 nav-btn"><i class="fa-solid fa-qrcode text-xl"></i></button>
                 </div>
             </header>
 
-            <main class="detail-content space-y-4">
+            <main class="scroll-content space-y-4" style="padding-top: 150px;">
                 <div class="glass-panel p-5 rounded-xl border-l-4 border-l-bona-gold relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-fingerprint text-6xl text-white"></i></div>
                     <div class="text-xs text-gray-500 uppercase tracking-widest mb-1">個體資訊 (Latest Status)</div>
@@ -275,7 +267,7 @@
                 <div class="bg-gray-900 p-6 rounded-lg border border-gray-700 space-y-4">
                     <label class="block text-xs text-bona-gold uppercase font-bold tracking-widest text-center mb-2">設定物種代碼 (Prefix)</label>
                     <input type="text" id="id-prefix" class="w-full bg-black border-2 border-bona-gold/50 rounded-xl text-white text-4xl p-4 outline-none text-center font-bold uppercase tracking-widest h-20 focus:border-bona-gold transition-colors" placeholder="D" value="D" oninput="this.value = this.value.toUpperCase(); window.updateIDPreview()">
-                    <div class="text-center"><button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定</button></div>
+                    <div class="text-center"><button type="button" onclick="document.getElementById('id-details').classList.toggle('hidden')" class="text-xs text-gray-500 underline hover:text-white">顯示/隱藏 詳細編碼設定 (年份/批次/序號)</button></div>
                     <div id="id-details" class="hidden grid grid-cols-3 gap-3 pt-2 border-t border-gray-800">
                         <div><label class="block text-[10px] text-gray-500 mb-1 text-center">年份</label><select id="id-year" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" onchange="window.updateIDPreview()"><option value="24">24</option><option value="25">25</option><option value="26">26</option></select></div>
                         <div><label class="block text-[10px] text-gray-500 mb-1 text-center">批次</label><input type="number" id="id-batch" class="w-full bg-black border border-gray-600 rounded-lg text-white p-2 text-center" value="01" oninput="window.updateIDPreview()"></div>
@@ -306,12 +298,47 @@
         </div>
     </div>
 
-    <!-- Upgrade Modal & QR (Same) -->
+    <!-- UPGRADE MODAL & QR MODAL (Unchanged) -->
     <div id="modal-upgrade" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md"><div class="w-full max-w-sm text-center relative"><i class="fa-solid fa-lock text-5xl text-bona-gold mb-6 animate-bounce"></i><h2 class="text-2xl font-bold text-white mb-2 tracking-widest">QUOTA EXCEEDED</h2><p class="text-gray-400 mb-8 text-sm leading-relaxed">您的飼育紀錄額度已達上限。<br>請聯繫管理員升級至 PRO+ 方案以解鎖更多空間。</p><button onclick="document.getElementById('modal-upgrade').classList.add('hidden')" class="border border-gray-600 text-gray-400 px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors uppercase text-xs tracking-widest">Close</button></div></div>
     <div id="modal-qr" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"><div class="bg-white w-full max-w-xs rounded-xl p-6 text-center relative shadow-2xl"><button onclick="window.closeQRModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-times text-xl"></i></button><h3 class="text-xl font-bold text-black mb-1">QR CODE</h3><p class="text-sm text-gray-500 font-mono mb-4" id="qr-id-label">--</p><div id="qrcode" class="flex justify-center mb-4"></div><p class="text-xs text-gray-400">請截圖保存或列印</p></div></div>
 
     <script>
-        // CORE JS (Attached to Window)
+        // *** CORE FUNCTIONS ***
+        function switchView(viewName) {
+            ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).classList.remove('flex');
+            });
+            const target = document.getElementById(`view-${viewName}`);
+            target.classList.remove('hidden');
+            if (viewName !== 'view-scanner') target.classList.add('flex');
+            
+            // Fix: Clear search input when returning to dashboard
+            if (viewName === 'dashboard') {
+                document.getElementById('search-id').value = '';
+            }
+        }
+
+        function showLoading(show) { 
+            const el = document.getElementById('loading-overlay');
+            if(show) { el.classList.remove('hidden'); el.classList.add('flex'); }
+            else { el.classList.add('hidden'); el.classList.remove('flex'); }
+        }
+
+        function showNotification(msg, type) {
+            const area = document.getElementById('notification-area');
+            const el = document.createElement('div');
+            el.className = `${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center justify-center transform transition-all duration-300 translate-y-[-20px] opacity-0`;
+            el.innerText = msg;
+            area.appendChild(el);
+            requestAnimationFrame(() => el.classList.remove('translate-y-[-20px]', 'opacity-0'));
+            setTimeout(() => { el.classList.add('opacity-0'); setTimeout(() => el.remove(), 300); }, 3000);
+        }
+        
+        function showDashboard() { 
+            switchView('dashboard'); 
+        }
+
         const WEBHOOK_URL = "https://hook.us2.make.com/dft05gnm8d1nnhq1uw9owyy5rbon904w"; 
         let currentUser = localStorage.getItem('bona_user_key') || null;
         let currentRealId = localStorage.getItem('bona_user_id') || null;
@@ -320,7 +347,35 @@
         let currentDetailData = null;
         let historyDataCache = []; 
 
-        window.cleanData = function(val) {
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastPrefix = localStorage.getItem('last_prefix');
+            const lastYear = localStorage.getItem('last_year');
+            const lastBatch = localStorage.getItem('last_batch');
+            const lastSeq = localStorage.getItem('last_seq');
+            if (lastPrefix) document.getElementById('id-prefix').value = lastPrefix;
+            if (lastYear) document.getElementById('id-year').value = lastYear;
+            if (lastBatch) document.getElementById('id-batch').value = lastBatch;
+            if (lastSeq) {
+                let nextSeq = parseInt(lastSeq) + 1;
+                document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('new-check-date').value = today;
+            document.getElementById('new-hatch-date').value = today;
+            document.getElementById('update-date').value = today;
+            
+            updateIDPreview();
+
+            if (currentUser) {
+                verifyLicense(currentUser, true);
+            } else {
+                switchView('login');
+            }
+        });
+
+        // --- CLEANER & LOGIC ---
+        function cleanData(val) {
             if (val === null || val === undefined) return '--';
             if (typeof val === 'object') {
                 if (val.type === 'text' && val.text) return val.text.content || '--'; 
@@ -329,8 +384,11 @@
                 if (val.type === 'select' && val.select) return val.select.name; 
                 if (val.select && val.select.name) return val.select.name; 
                 if (val.type === 'number') return val.number; 
+                
+                // DATE FIX
                 if (val.type === 'date' && val.date) return val.date.start.split('T')[0]; 
                 if (val.start) return val.start.split('T')[0];
+                
                 if (val.name) return val.name; 
                 if (val.plain_text) return val.plain_text; 
             }
@@ -341,152 +399,395 @@
             return val;
         }
 
-        window.getSafePayloadValue = function(val) {
-            const cleaned = window.cleanData(val);
+        // --- v50.1 FIX: Sanitized Payload (Nullify '--') ---
+        function getSafePayloadValue(val) {
+            const cleaned = cleanData(val);
             return (cleaned === '--' || cleaned === '') ? null : cleaned;
         }
-        
-        window.getDomVal = function(id) { 
-            const el = document.getElementById(id);
-            return el ? el.value : ''; 
+
+        function updateIDPreview() {
+            const prefix = document.getElementById('id-prefix').value || 'D';
+            const year = document.getElementById('id-year').value;
+            let batch = document.getElementById('id-batch').value || '00';
+            let seq = document.getElementById('id-seq').value || '000';
+            if (batch.length < 2) batch = '0' + batch;
+            if (seq.length < 3) seq = ('000' + seq).slice(-3);
+            const fullId = `${prefix}-${year}-${batch}-${seq}`;
+            document.getElementById('id-preview').innerText = fullId;
+            return fullId;
         }
 
-        window.switchView = function(viewName) {
-            ['view-login', 'view-dashboard', 'view-detail', 'view-scanner'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            const target = document.getElementById(`view-${viewName}`);
-            target.classList.remove('hidden');
-            if (viewName !== 'view-scanner') target.classList.add('flex');
-            if (viewName === 'dashboard') {
-                document.getElementById('search-id').value = '';
-            }
+        function updateDashboardUI() {
+            if(!currentUser) return;
+            const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser;
+            document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`;
+            const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100);
+            document.getElementById('quota-bar-fill').style.width = `${percent}%`;
+            document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`;
+            const bar = document.getElementById('quota-bar-fill');
+            if (percent >= 90) bar.className = 'quota-bar h-full bg-bona-danger';
+            else bar.className = 'quota-bar h-full bg-bona-gold';
         }
 
-        window.showLoading = function(show) { document.getElementById('loading-overlay').classList[show ? 'remove' : 'add']('hidden'); if(show) document.getElementById('loading-overlay').classList.add('flex'); }
-        window.showNotification = function(msg, type) { const area = document.getElementById('notification-area'); const el = document.createElement('div'); el.className = `${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-3 rounded shadow-lg text-sm font-bold flex items-center justify-center transform transition-all duration-300 translate-y-[-20px] opacity-0`; el.innerText = msg; area.appendChild(el); requestAnimationFrame(() => el.classList.remove('translate-y-[-20px]', 'opacity-0')); setTimeout(() => { el.classList.add('opacity-0'); setTimeout(() => el.remove(), 300); }, 3000); }
-        window.updateIDPreview = function() { const prefix = document.getElementById('id-prefix').value || 'D'; const year = document.getElementById('id-year').value; let batch = document.getElementById('id-batch').value || '00'; let seq = document.getElementById('id-seq').value || '000'; if (batch.length < 2) batch = '0' + batch; if (seq.length < 3) seq = ('000' + seq).slice(-3); const fullId = `${prefix}-${year}-${batch}-${seq}`; document.getElementById('id-preview').innerText = fullId; return fullId; }
-        window.updateDashboardUI = function() { if(!currentUser) return; const display = currentUser.length > 8 ? currentUser.substring(0, 4) + '****' + currentUser.substring(currentUser.length - 4) : currentUser; document.getElementById('dashboard-license-display').innerText = `LIC: ${display}`; const percent = Math.min((quotaInfo.used / quotaInfo.max) * 100, 100); document.getElementById('quota-bar-fill').style.width = `${percent}%`; document.getElementById('quota-text').innerText = `${quotaInfo.used} / ${quotaInfo.max}`; const bar = document.getElementById('quota-bar-fill'); if (percent >= 90) bar.className = 'quota-bar h-full bg-bona-danger'; else bar.className = 'quota-bar h-full bg-bona-gold'; }
-        
-        window.verifyLicense = async function(key, silent) {
-            if (!silent) window.showLoading(true);
+        // --- AUTH ---
+        async function verifyLicense(key, silent) {
+            if (!silent) showLoading(true);
             try {
-                const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'auth', userId: key }) });
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'auth', userId: key })
+                });
                 const text = await response.text();
-                let data = {}; try { data = JSON.parse(text); } catch(e) {}
+                let data = {};
+                try { data = JSON.parse(text); } catch(e) {}
                 if (data.json) { try { data = JSON.parse(data.json); } catch(e){} }
                 if (Array.isArray(data)) data = data[0];
 
                 const rawKey = data.key_found || data['License Key'] || data.id;
                 const rawStatus = data.status || data.Status;
-                const rawRealId = data.real_id || data.user_id || data.id;
+                
+                const rawRealId = data.real_id || data.user_id || data.id; // Fallback to whatever unique we have
 
-                const cleanKey = window.cleanData(rawKey);
-                const cleanStatus = window.cleanData(rawStatus).toString().trim();
-                const cleanRealId = window.cleanData(rawRealId);
+                const cleanKey = cleanData(rawKey);
+                const cleanStatus = cleanData(rawStatus).toString().trim();
+                const cleanRealId = cleanData(rawRealId);
 
-                // STRICT CHECK: ===
-                const keyMatch = cleanKey === key; 
-                const isActive = cleanStatus.toLowerCase().includes('active');
+                const hasKey = cleanKey && cleanKey !== '--' && cleanKey !== '';
+                const isSuspended = cleanStatus.toLowerCase().includes('suspend') || cleanStatus.toLowerCase().includes('inactive');
+                const isActive = cleanStatus.toLowerCase().includes('active') && !isSuspended;
 
-                if (keyMatch && isActive) {
-                    currentUser = key; 
-                    currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key; 
-                    localStorage.setItem('bona_user_key', key); 
-                    localStorage.setItem('bona_user_id', currentRealId); 
-                    quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 }; 
-                    window.updateDashboardUI(); 
-                    if (!silent) { 
-                        window.showNotification('登入成功', 'success'); 
-                        window.switchView('dashboard'); 
+                if (hasKey && isActive) {
+                    currentUser = key;
+                    currentRealId = cleanRealId && cleanRealId !== '--' ? cleanRealId : key;
+                    localStorage.setItem('bona_user_key', key);
+                    localStorage.setItem('bona_user_id', currentRealId);
+                    quotaInfo = { max: parseInt(data.max) || 50, used: parseInt(data.used) || 0 };
+                    updateDashboardUI();
+                    if (!silent) showNotification('登入成功', 'success');
+                    switchView('dashboard');
+                } else {
+                    let failReason = !hasKey ? "找不到授權碼" : `狀態異常 [${cleanStatus}]`;
+                    if (!silent) {
+                        alert(`驗證失敗:\nKey: ${cleanKey}\nStatus: ${cleanStatus}`);
+                        showNotification(`授權無效`, 'error');
                     }
-                } else { 
-                    if (!silent) { 
-                        let msg = !keyMatch ? "授權碼不符 (大小寫敏感)" : "帳號狀態異常";
-                        window.showNotification(`登入失敗: ${msg}`, 'error'); 
-                    } else window.logout(); 
+                    else logout();
                 }
-            } catch(e) { if(!silent) window.showNotification('連線錯誤', 'error'); } finally { if(!silent) window.showLoading(false); }
+            } catch (error) {
+                if (!silent) showNotification('連線錯誤', 'error');
+                if(silent) logout(); 
+            } finally {
+                if (!silent) showLoading(false);
+            }
         }
 
-        window.consolidateData = function(rawList) { let final = { ...rawList[0] }; const isValid = (v) => { const s = window.cleanData(v); return s && s !== '--' && s !== ''; }; const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id']; staticFields.forEach(field => { if (!isValid(final[field])) { const found = rawList.find(r => isValid(r[field])); if (found) final[field] = found[field]; } }); return final; }
-        window.fetchBeetleData = async function(id) { if (!currentUser) return window.showNotification('請先登入', 'error'); const targetUser = currentRealId || currentUser; window.showLoading(true); try { const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'query', id: id, userId: targetUser }) }); const text = await response.text(); let data; try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); } if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} } const normalize = (obj) => { if (!obj || typeof obj !== 'object') return obj; const newObj = {}; Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]); return newObj; }; let rawList = []; if (Array.isArray(data)) rawList = data; else if (typeof data === 'object' && data !== null) { if (data.id || data.ID) rawList = [data]; else if (data.body || data.data || data.items) { const inner = data.body || data.data || data.items; rawList = Array.isArray(inner) ? inner : [inner]; } } if (rawList.length > 0) { const normalizedList = rawList.map(normalize); const validHistory = normalizedList.filter(r => r.id && window.cleanData(r.id) !== '--'); if (validHistory.length > 0) { historyDataCache = validHistory; const consolidatedRecord = window.consolidateData(validHistory); currentDetailData = consolidatedRecord; window.populateDetailView(consolidatedRecord); window.renderHistoryList(validHistory); window.calculateGrowth(consolidatedRecord, validHistory); window.switchView('detail'); document.getElementById('search-id').value = ''; } else { window.showNotification(`資料結構異常`, 'error'); } } else { window.showNotification(`找不到資料`, 'error'); } } catch (error) { window.showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); } }
-        window.calculateGrowth = function(current, history) { const curDate = new Date(window.cleanData(current.date_check)); const hatchDate = new Date(window.cleanData(current.date_hatch)); const curWeight = parseFloat(window.cleanData(current.weight)); let totalAvg = '--'; if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) { const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24); if (totalDays > 0) totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日'; } document.getElementById('d-growth-total').innerText = totalAvg; let intervalAvg = '--'; if (history && history.length > 1) { const prev = history[1]; const prevDate = new Date(window.cleanData(prev.date_check)); const prevWeight = parseFloat(window.cleanData(prev.weight)); if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) { const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24); const weightDiff = curWeight - prevWeight; if (intDays > 0) { intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日'; const el = document.getElementById('d-growth-interval'); el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold"; } } } document.getElementById('d-growth-interval').innerText = intervalAvg; }
-        window.populateDetailView = function(data) { document.getElementById('detail-header-id').innerText = window.cleanData(data.id); document.getElementById('d-id').innerText = window.cleanData(data.id); document.getElementById('d-gen').innerText = window.cleanData(data.generation); document.getElementById('d-gen-detail').innerText = window.cleanData(data.generation); document.getElementById('d-hatch').innerText = window.cleanData(data.date_hatch); document.getElementById('d-weight').innerText = window.cleanData(data.weight); document.getElementById('d-check').innerText = window.cleanData(data.date_check); document.getElementById('d-sire').innerHTML = window.createLineageLink(data.sire_size); document.getElementById('d-dam').innerHTML = window.createLineageLink(data.dam_size); document.getElementById('d-box-type').innerText = window.cleanData(data.box_type); document.getElementById('d-box-vol').innerText = window.cleanData(data.box_vol); document.getElementById('d-sub-main').innerText = window.cleanData(data.sub_main); document.getElementById('d-sub-sec').innerText = window.cleanData(data.sub_sec); document.getElementById('d-booster').innerText = window.cleanData(data.booster); document.getElementById('update-id').value = window.cleanData(data.id); }
-        window.renderHistoryList = function(arr) { const c = document.getElementById('history-list'); c.innerHTML=''; if(!arr || arr.length===0) { document.getElementById('history-section').classList.add('hidden'); return; } document.getElementById('history-section').classList.remove('hidden'); arr.forEach(i => { const d=document.createElement('div'); d.className='glass-panel p-4 rounded-xl relative'; const date = window.cleanData(i.date_check); const weight = window.cleanData(i.weight); const sub = window.cleanData(i.sub_main); const sub_sec = window.cleanData(i.sub_sec); const booster = window.cleanData(i.booster); const box = window.cleanData(i.box_type); const vol = window.cleanData(i.box_vol); d.innerHTML=`<div class="flex justify-between items-start"><div class="flex flex-col space-y-1 w-2/3"><span class="text-xs text-gray-500">${date}</span><div class="text-xs text-bona-muted leading-relaxed"><span class="text-white">${sub}</span>${sub_sec!=='--'&&sub_sec!=='無'?' + '+sub_sec:''}<br>${booster!=='--'&&booster!=='無添加'?'<span class="text-bona-gold">'+booster+'</span>':''}</div></div><div class="flex flex-col items-end w-1/3"><span class="text-white font-bold text-xl mb-1">${weight}g</span><div class="text-[10px] text-gray-500 text-right">${box}<br>${vol}</div></div></div>`; c.appendChild(d); }); }
-        
-        window.handleLogin = function() { const key = document.getElementById('login-license').value.trim(); if (!key) return window.showNotification('請輸入授權碼', 'error'); window.verifyLicense(key, false); }
-        window.handleNewEntrySubmit = async function(e) {
-            e.preventDefault();
+        // --- FETCH & DATA HANDLING (v48.6 Fixes) ---
+        function consolidateData(rawList) {
+            let final = { ...rawList[0] }; 
+            const isValid = (v) => { const s = cleanData(v); return s && s !== '--' && s !== ''; };
+            const staticFields = ['generation', 'date_hatch', 'sire_size', 'dam_size', 'id'];
+            staticFields.forEach(field => {
+                if (!isValid(final[field])) {
+                    const found = rawList.find(r => isValid(r[field]));
+                    if (found) final[field] = found[field];
+                }
+            });
+            return final;
+        }
+
+        async function fetchBeetleData(id) {
+            if (!currentUser) return showNotification('請先登入', 'error');
+            const targetUser = currentRealId || currentUser;
+            showLoading(true);
             try {
-                if (!currentUser) throw new Error('請先登入');
-                if (quotaInfo.used >= quotaInfo.max) { window.closeNewEntryModal(); document.getElementById('modal-upgrade').classList.remove('hidden'); return; }
-                const targetUser = currentRealId || currentUser;
-                window.closeNewEntryModal();
-                window.showLoading(true);
-                const fullId = window.updateIDPreview();
-                localStorage.setItem('last_prefix', window.getDomVal('id-prefix')); localStorage.setItem('last_year', window.getDomVal('id-year')); localStorage.setItem('last_batch', window.getDomVal('id-batch')); localStorage.setItem('last_seq', window.getDomVal('id-seq'));
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'query', id: id, userId: targetUser })
+                });
+                const text = await response.text();
+                let data;
+                try { data = JSON.parse(text); } catch (e) { throw new Error(`非 JSON 格式回應`); }
+                if (data.json) { try { data = typeof data.json === 'string' ? JSON.parse(data.json) : data.json; } catch(e) {} }
                 
-                const payload = {
-                    type: 'growth', mode: 'new', userId: targetUser, id: fullId,
-                    date_check: window.getDomVal('new-check-date') || new Date().toISOString().split('T')[0],
-                    date_hatch: window.getDomVal('new-hatch-date') || new Date().toISOString().split('T')[0],
-                    generation: window.getDomVal('new-gen').toUpperCase(),
-                    sire_size: window.getDomVal('new-sire') || 'N/A',
-                    dam_size: window.getDomVal('new-dam') || 'N/A',
-                    weight: parseFloat(window.getDomVal('new-weight') || 0),
-                    box_type: window.getDomVal('new-box-type'),
-                    box_vol: window.getDomVal('new-box-vol'),
-                    sub_main: window.getDomVal('new-sub-main'),
-                    sub_sec: window.getDomVal('new-sub-sec'),
-                    booster: window.getDomVal('new-booster')
+                const normalize = (obj) => {
+                    if (!obj || typeof obj !== 'object') return obj;
+                    const newObj = {};
+                    Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = obj[key]);
+                    return newObj;
                 };
 
-                const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (response.ok) { window.showNotification(`錄入成功: ${fullId}`, 'success'); quotaInfo.used += 1; window.updateDashboardUI(); await window.verifyLicense(currentUser, true); const nextSeq = parseInt(document.getElementById('id-seq').value) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); window.updateIDPreview(); setTimeout(async () => { await window.fetchBeetleData(fullId); setTimeout(() => window.openQRModal(fullId), 500); }, 2000); } else throw new Error(`HTTP ${response.status}`);
-            } catch (error) { console.error(error); window.showNotification(`錄入錯誤: ${error.message}`, 'error'); } finally { window.showLoading(false); }
+                let rawList = [];
+                if (Array.isArray(data)) rawList = data;
+                else if (typeof data === 'object' && data !== null) {
+                    if (data.id || data.ID) rawList = [data];
+                    else if (data.body || data.data || data.items) {
+                        const inner = data.body || data.data || data.items;
+                        rawList = Array.isArray(inner) ? inner : [inner];
+                    }
+                }
+
+                if (rawList.length > 0) {
+                    const normalizedList = rawList.map(normalize);
+                    const validHistory = normalizedList.filter(r => r.id && cleanData(r.id) !== '--');
+                    if (validHistory.length > 0) {
+                        historyDataCache = validHistory;
+                        const consolidatedRecord = consolidateData(validHistory);
+                        currentDetailData = consolidatedRecord;
+                        populateDetailView(consolidatedRecord);
+                        renderHistoryList(validHistory);
+                        calculateGrowth(consolidatedRecord, validHistory);
+                        switchView('detail');
+                        document.getElementById('search-id').value = '';
+                    } else { showNotification(`資料結構異常`, 'error'); }
+                } else { showNotification(`找不到資料`, 'error'); }
+            } catch (error) { showNotification(`系統錯誤: ${error.message}`, 'error'); } finally { showLoading(false); }
         }
 
-        window.handleUpdateSubmit = async function(e) {
-            e.preventDefault();
-            if (document.getElementById('modal-update').classList.contains('hidden')) return;
-            if (!currentUser) return window.showNotification('請先登入', 'error');
-            const targetUser = currentRealId || currentUser;
-            window.closeUpdateModal(); window.showLoading(true);
-            const id = window.getDomVal('update-id'); const weight = window.getDomVal('update-weight'); const checkDate = window.getDomVal('update-date');
-            let sub = window.getDomVal('update-sub'); let subSec = window.getDomVal('update-sub-sec'); let boxType = window.getDomVal('update-box-type'); let boxVol = window.getDomVal('update-box-vol'); let booster = window.getDomVal('update-booster');
-            if (currentDetailData) { if (sub === 'Keep') sub = window.cleanData(currentDetailData.sub_main); if (subSec === 'Keep') subSec = window.cleanData(currentDetailData.sub_sec); if (boxType === 'Keep') boxType = window.cleanData(currentDetailData.box_type); if (boxVol === 'Keep') boxVol = window.cleanData(currentDetailData.box_vol); if (booster === 'None') booster = window.cleanData(currentDetailData.booster); }
-            const payload = { type: 'growth', mode: 'update', id: id, userId: targetUser, weight: parseFloat(weight), date_check: checkDate, date_hatch: window.getSafePayloadValue(currentDetailData?.date_hatch), generation: window.getSafePayloadValue(currentDetailData?.generation), sire_size: window.getSafePayloadValue(currentDetailData?.sire_size), dam_size: window.getSafePayloadValue(currentDetailData?.dam_size), sub_main: window.getSafePayloadValue(sub), sub_sec: window.getSafePayloadValue(subSec), box_type: window.getSafePayloadValue(boxType), box_vol: window.getSafePayloadValue(boxVol), booster: window.getSafePayloadValue(booster) };
-            try { const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)}); if(res.ok) { window.showNotification('更新成功', 'success'); document.getElementById('d-weight').innerText = weight; await window.verifyLicense(currentUser, true); setTimeout(() => window.fetchBeetleData(id), 1500); } else throw new Error(res.status); } catch(e) { window.showNotification('更新失敗', 'error'); } finally { window.showLoading(false); }
+        function calculateGrowth(current, history) {
+            const curDate = new Date(cleanData(current.date_check));
+            const hatchDate = new Date(cleanData(current.date_hatch));
+            const curWeight = parseFloat(cleanData(current.weight));
+            let totalAvg = '--';
+            if (!isNaN(curDate) && !isNaN(hatchDate) && !isNaN(curWeight)) {
+                const totalDays = (curDate - hatchDate) / (1000 * 60 * 60 * 24);
+                if (totalDays > 0) totalAvg = (curWeight / totalDays).toFixed(3) + ' g/日';
+            }
+            document.getElementById('d-growth-total').innerText = totalAvg;
+            let intervalAvg = '--';
+            if (history && history.length > 1) {
+                const prev = history[1];
+                const prevDate = new Date(cleanData(prev.date_check));
+                const prevWeight = parseFloat(cleanData(prev.weight));
+                if (!isNaN(curDate) && !isNaN(prevDate) && !isNaN(curWeight) && !isNaN(prevWeight)) {
+                     const intDays = (curDate - prevDate) / (1000 * 60 * 60 * 24);
+                     const weightDiff = curWeight - prevWeight;
+                     if (intDays > 0) {
+                         intervalAvg = (weightDiff / intDays).toFixed(3) + ' g/日';
+                         const el = document.getElementById('d-growth-interval');
+                         el.className = weightDiff >= 0 ? "font-mono text-lg text-bona-success font-bold" : "font-mono text-lg text-bona-danger font-bold";
+                     }
+                }
+            }
+            document.getElementById('d-growth-interval').innerText = intervalAvg;
         }
 
-        window.logout = function() { localStorage.removeItem('bona_user_key'); localStorage.removeItem('bona_user_id'); currentUser = null; location.reload(); }
-        window.handleManualSearch = async function() { if (!currentUser) return window.showNotification('請先登入', 'error'); let id = document.getElementById('search-id').value.trim().toUpperCase(); const cleanInput = id.replace(/[^A-Z0-9]/g, ''); if (cleanInput.length === 7 && /^\d+$/.test(cleanInput)) { id = `D-${cleanInput.substring(0, 2)}-${cleanInput.substring(2, 4)}-${cleanInput.substring(4)}`; window.showNotification(`自動修正 ID 為: ${id}`, 'success'); } else if (cleanInput.length >= 8) { const suffix = cleanInput.slice(-7); const prefix = cleanInput.slice(0, -7); id = `${prefix}-${suffix.substring(0, 2)}-${suffix.substring(2, 4)}-${suffix.substring(4)}`; } if (!id) return window.showNotification('請輸入編號', 'error'); await window.fetchBeetleData(id); }
-        window.showNewEntryForm = function() { document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; window.updateIDPreview(); const lastSeq = localStorage.getItem('last_seq'); if (lastSeq) { const nextSeq = parseInt(lastSeq) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); window.updateIDPreview(); } document.getElementById('modal-new-entry').classList.remove('hidden'); }
-        window.openUpdateModal = function() { const today = new Date().toISOString().split('T')[0]; document.getElementById('update-date').value = today; document.getElementById('modal-update').classList.remove('hidden'); }
-        window.closeUpdateModal = function() { document.getElementById('modal-update').classList.add('hidden'); }
-        window.closeNewEntryModal = function() { document.getElementById('modal-new-entry').classList.add('hidden'); }
-        window.toggleEditMode = function() { window.openUpdateModal(); }
-        window.showQRCodeForCurrent = function() { currentDetailData && currentDetailData.id ? window.openQRModal(window.cleanData(currentDetailData.id)) : window.showNotification('無資料', 'error'); }
-        window.openQRModal = function(id) { const modal = document.getElementById('modal-qr'); const container = document.getElementById('qrcode'); container.innerHTML = ''; document.getElementById('qr-id-label').innerText = id; new QRCode(container, { text: id, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H }); modal.classList.remove('hidden'); }
-        window.closeQRModal = function() { document.getElementById('modal-qr').classList.add('hidden'); }
-        window.openScanner = function() { window.switchView('scanner'); setTimeout(() => { if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader"); html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => { html5QrcodeScanner.stop().then(() => { window.closeScanner(); let cleanId = decodedText.trim().toUpperCase(); if (cleanId.includes('/') || cleanId.includes('HTTP')) { const parts = cleanId.split('/'); cleanId = parts[parts.length - 1]; } window.showNotification(`已讀取: ${cleanId}`, 'info'); window.fetchBeetleData(cleanId); }); }, (error) => {}).catch(err => { window.showNotification('無法開啟相機', 'error'); window.closeScanner(); }); }, 100); }
-        window.closeScanner = function() { if (html5QrcodeScanner?.isScanning) { html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); window.switchView('dashboard'); }).catch(() => window.switchView('dashboard')); } else window.switchView('dashboard'); }
-        window.createLineageLink = function(text) { const val = window.cleanData(text); if (!val || val === '--' || val === '') return '--'; if (val.length > 2 && /[A-Z0-9]/.test(val)) { return `<span class="lineage-link" onclick="window.handleLineageClick('${val}')">${val}</span>`; } return val; }
-        window.handleLineageClick = async function(id) { window.showNotification(`正在跳轉至親代: ${id}`, 'info'); await window.fetchBeetleData(id); }
+        function populateDetailView(data) {
+            document.getElementById('detail-header-id').innerText = cleanData(data.id);
+            document.getElementById('d-id').innerText = cleanData(data.id);
+            document.getElementById('d-gen').innerText = cleanData(data.generation);
+            document.getElementById('d-gen-detail').innerText = cleanData(data.generation);
+            document.getElementById('d-hatch').innerText = cleanData(data.date_hatch);
+            document.getElementById('d-weight').innerText = cleanData(data.weight);
+            document.getElementById('d-check').innerText = cleanData(data.date_check);
+            document.getElementById('d-sire').innerText = cleanData(data.sire_size);
+            document.getElementById('d-dam').innerText = cleanData(data.dam_size);
+            document.getElementById('d-box-type').innerText = cleanData(data.box_type);
+            document.getElementById('d-box-vol').innerText = cleanData(data.box_vol);
+            document.getElementById('d-sub-main').innerText = cleanData(data.sub_main);
+            document.getElementById('d-sub-sec').innerText = cleanData(data.sub_sec);
+            document.getElementById('d-booster').innerText = cleanData(data.booster);
+            document.getElementById('update-id').value = cleanData(data.id);
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const lastPrefix = localStorage.getItem('last_prefix'); 
-            if (lastPrefix && document.getElementById('id-prefix')) document.getElementById('id-prefix').value = lastPrefix;
-            const today = new Date().toISOString().split('T')[0]; 
-            const checkEl = document.getElementById('new-check-date');
-            const hatchEl = document.getElementById('new-hatch-date');
-            const updEl = document.getElementById('update-date');
-            if(checkEl) checkEl.value = today;
-            if(hatchEl) hatchEl.value = today;
-            if(updEl) updEl.value = today;
+        function renderHistoryList(dataArray) {
+            const container = document.getElementById('history-list');
+            const section = document.getElementById('history-section');
+            container.innerHTML = '';
             
-            if (currentUser) window.verifyLicense(currentUser, true); 
-            else window.switchView('login');
-        });
+            // Allow list to show even with 1 item for better UX
+            if (!dataArray || dataArray.length === 0) { 
+                section.classList.add('hidden'); return; 
+            }
+            section.classList.remove('hidden');
+
+            dataArray.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'glass-panel p-4 rounded-xl relative';
+                const date = cleanData(item.date_check);
+                const weight = cleanData(item.weight);
+                const sub = cleanData(item.sub_main);
+                const sub_sec = cleanData(item.sub_sec);
+                const booster = cleanData(item.booster);
+                const box = cleanData(item.box_type);
+                const vol = cleanData(item.box_vol);
+                el.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex flex-col space-y-1 w-2/3">
+                            <span class="text-xs text-gray-500">${date}</span>
+                            <div class="text-xs text-bona-muted leading-relaxed">
+                                <span class="text-white">${sub}</span>
+                                ${sub_sec && sub_sec !== '--' && sub_sec !== '無' ? ' + ' + sub_sec : ''}
+                                <br>
+                                ${booster !== '--' && booster !== '無添加' ? '<span class="text-bona-gold">' + booster + '</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end w-1/3">
+                            <span class="text-white font-bold text-xl mb-1">${weight}g</span>
+                            <div class="text-[10px] text-gray-500 text-right">
+                                ${box}<br>${vol}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+        async function handleLogin() { const key = document.getElementById('login-license').value.trim(); if (!key) return showNotification('請輸入授權碼', 'error'); await verifyLicense(key, false); }
+        function openUpdateModal() { 
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('update-date').value = today;
+            document.getElementById('modal-update').classList.remove('hidden'); 
+        }
+        function closeUpdateModal() { document.getElementById('modal-update').classList.add('hidden'); }
+        function showNewEntryForm() { if (quotaInfo.used >= quotaInfo.max) { document.getElementById('modal-upgrade').classList.remove('hidden'); return; } document.getElementById('form-new-entry').reset(); const today = new Date().toISOString().split('T')[0]; document.getElementById('new-check-date').value = today; document.getElementById('new-hatch-date').value = today; updateIDPreview(); const lastSeq = localStorage.getItem('last_seq'); if (lastSeq) { const nextSeq = parseInt(lastSeq) + 1; document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0'); updateIDPreview(); } document.getElementById('modal-new-entry').classList.remove('hidden'); }
+        
+        // --- v49.1 FIX: Send FULL payload even for New Entry ---
+        async function handleUpdateSubmit(e) {
+            e.preventDefault();
+            // GUARD
+            if (document.getElementById('modal-update').classList.contains('hidden')) return;
+            if (!currentUser) return showNotification('請先登入', 'error');
+            
+            // v48.9 FIX: Use Real ID
+            const targetUser = currentRealId || currentUser;
+            
+            closeUpdateModal();
+            showLoading(true);
+            
+            const id = document.getElementById('update-id').value;
+            const weight = document.getElementById('update-weight').value;
+            const checkDate = document.getElementById('update-date').value;
+            let sub = document.getElementById('update-sub').value;
+            let subSec = document.getElementById('update-sub-sec').value;
+            let boxType = document.getElementById('update-box-type').value;
+            let boxVol = document.getElementById('update-box-vol').value;
+            let booster = document.getElementById('update-booster').value;
+
+            // Inheritance
+            if (currentDetailData) {
+                if (sub === 'Keep') sub = cleanData(currentDetailData.sub_main);
+                if (subSec === 'Keep') subSec = cleanData(currentDetailData.sub_sec);
+                if (boxType === 'Keep') boxType = cleanData(currentDetailData.box_type);
+                if (boxVol === 'Keep') boxVol = cleanData(currentDetailData.box_vol);
+                if (booster === 'None') booster = cleanData(currentDetailData.booster);
+            }
+
+            const payload = {
+                type: 'growth', mode: 'update', id: id, userId: targetUser, // Ensure userId is here!
+                weight: parseFloat(weight), 
+                date_check: checkDate,
+                date_hatch: getSafePayloadValue(currentDetailData ? currentDetailData.date_hatch : ''),
+                generation: getSafePayloadValue(currentDetailData ? currentDetailData.generation : ''),
+                sire_size: getSafePayloadValue(currentDetailData ? currentDetailData.sire_size : ''),
+                dam_size: getSafePayloadValue(currentDetailData ? currentDetailData.dam_size : ''),
+                sub_main: getSafePayloadValue(sub), 
+                sub_sec: getSafePayloadValue(subSec), 
+                box_type: getSafePayloadValue(boxType), 
+                box_vol: getSafePayloadValue(boxVol), 
+                booster: getSafePayloadValue(booster)
+            };
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                if (response.ok) {
+                    showNotification('數據更新成功', 'success');
+                    document.getElementById('d-weight').innerText = weight;
+                    document.getElementById('d-check').innerText = checkDate;
+                    
+                    const newRecord = {
+                        id: id, weight: weight, date_check: checkDate,
+                        sub_main: sub, sub_sec: subSec, box_type: boxType, box_vol: boxVol, booster: booster,
+                        generation: currentDetailData.generation, date_hatch: currentDetailData.date_hatch,
+                        sire_size: currentDetailData.sire_size, dam_size: currentDetailData.dam_size
+                    };
+                    
+                    if (historyDataCache) historyDataCache.unshift(newRecord); else historyDataCache = [newRecord];
+                    currentDetailData = newRecord;
+                    populateDetailView(newRecord);
+                    renderHistoryList(historyDataCache);
+                    calculateGrowth(newRecord, historyDataCache);
+                } else throw new Error(`HTTP ${response.status}`);
+            } catch (error) { showNotification(`更新失敗: ${error.message}`, 'error'); } finally { showLoading(false); }
+        }
+
+        async function handleNewEntrySubmit(e) {
+            e.preventDefault();
+            // GUARD
+            if (document.getElementById('modal-new-entry').classList.contains('hidden')) return;
+            if (!currentUser) return showNotification('請先登入', 'error');
+            if (quotaInfo.used >= quotaInfo.max) { closeNewEntryModal(); document.getElementById('modal-upgrade').classList.remove('hidden'); return; }
+            
+            const targetUser = currentRealId || currentUser;
+            closeNewEntryModal();
+            showLoading(true);
+            const fullId = updateIDPreview();
+            localStorage.setItem('last_prefix', document.getElementById('id-prefix').value);
+            localStorage.setItem('last_year', document.getElementById('id-year').value);
+            localStorage.setItem('last_batch', document.getElementById('id-batch').value);
+            localStorage.setItem('last_seq', document.getElementById('id-seq').value);
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'growth', mode: 'new', userId: targetUser, id: fullId, // Use Real ID here
+                        date_check: document.getElementById('new-check-date').value,
+                        date_hatch: document.getElementById('new-hatch-date').value,
+                        generation: document.getElementById('new-gen').value.toUpperCase(),
+                        sire_size: document.getElementById('new-sire').value || 'N/A',
+                        dam_size: document.getElementById('new-dam').value || 'N/A',
+                        weight: parseFloat(document.getElementById('new-weight').value),
+                        box_type: document.getElementById('new-box-type').value,
+                        box_vol: document.getElementById('new-box-vol').value,
+                        sub_main: document.getElementById('new-sub-main').value,
+                        sub_sec: document.getElementById('new-sub-sec').value,
+                        booster: document.getElementById('new-booster').value
+                    })
+                });
+                const text = await response.text();
+                let data = {}; try { data = JSON.parse(text); } catch(e) {}
+                if (response.ok) {
+                    if (data.status === 'error' && data.message === 'Quota Exceeded') {
+                        showNotification('錄入失敗：額度已滿', 'error');
+                        document.getElementById('modal-upgrade').classList.remove('hidden');
+                    } else {
+                        showNotification(`錄入成功: ${fullId}`, 'success');
+                        quotaInfo.used += 1;
+                        updateDashboardUI();
+                        const nextSeq = parseInt(document.getElementById('id-seq').value) + 1;
+                        document.getElementById('id-seq').value = nextSeq.toString().padStart(3, '0');
+                        updateIDPreview();
+                        setTimeout(async () => { await fetchBeetleData(fullId); setTimeout(() => openQRModal(fullId), 500); }, 3000);
+                    }
+                } else throw new Error(`HTTP ${response.status}`);
+            } catch (error) { console.error(error); showNotification('錄入完成', 'success'); } finally { showLoading(false); }
+        }
+        function toggleEditMode() { openUpdateModal(); }
+        function closeNewEntryModal() { document.getElementById('modal-new-entry').classList.add('hidden'); }
+        function showQRCodeForCurrent() { currentDetailData && currentDetailData.id ? openQRModal(cleanData(currentDetailData.id)) : showNotification('無資料可生成 QR Code', 'error'); }
+        function openQRModal(id) { const modal = document.getElementById('modal-qr'); const container = document.getElementById('qrcode'); container.innerHTML = ''; document.getElementById('qr-id-label').innerText = id; new QRCode(container, { text: id, width: 180, height: 180, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H }); modal.classList.remove('hidden'); }
+        function closeQRModal() { document.getElementById('modal-qr').classList.add('hidden'); }
+        function openScanner() {
+            switchView('scanner');
+            setTimeout(() => {
+                if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
+                html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => {
+                    html5QrcodeScanner.stop().then(() => { closeScanner(); let cleanId = decodedText.trim().toUpperCase(); if (cleanId.includes('/') || cleanId.includes('HTTP')) { const parts = cleanId.split('/'); cleanId = parts[parts.length - 1]; } showNotification(`已讀取: ${cleanId}`, 'info'); fetchBeetleData(cleanId); });
+                }, (error) => {}).catch(err => { showNotification('無法開啟相機', 'error'); closeScanner(); });
+            }, 100);
+        }
+        function closeScanner() { if (html5QrcodeScanner?.isScanning) { html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); switchView('dashboard'); }).catch(() => switchView('dashboard')); } else switchView('dashboard'); }
+        function logout() { localStorage.removeItem('bona_user_key'); localStorage.removeItem('bona_user_id'); currentUser = null; location.reload(); }
+        async function handleManualSearch() { if (!currentUser) return showNotification('請先登入', 'error'); const id = document.getElementById('search-id').value.trim().toUpperCase(); if (!id) return showNotification('請輸入編號', 'error'); await fetchBeetleData(id); }
+        
+        // Helper function for v50.1 Payload Fix
+        function getSafePayloadValue(val) {
+            const cleaned = cleanData(val);
+            return (cleaned === '--' || cleaned === '') ? null : cleaned;
+        }
     </script>
 </body>
 </html>
